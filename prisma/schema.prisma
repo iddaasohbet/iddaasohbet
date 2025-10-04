@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  password      String
+  name          String?
+  bio           String?   @db.Text
+  avatar        String?   @db.Text
+  role          Role      @default(USER)
+  verified      Boolean   @default(false)
+  
+  // İstatistikler
+  totalCoupons  Int       @default(0)
+  wonCoupons    Int       @default(0)
+  lostCoupons   Int       @default(0)
+  pendingCoupons Int      @default(0)
+  winRate       Float     @default(0)
+  totalProfit   Float     @default(0)
+  
+  // İlişkiler
+  coupons       Coupon[]
+  comments      Comment[]
+  likes         Like[]
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model Coupon {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?       @db.Text
+  totalOdds     Float
+  stake         Float?        // Bahis miktarı
+  potentialWin  Float?        // Potansiyel kazanç
+  status        CouponStatus  @default(PENDING)
+  
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  matches       Match[]
+  comments      Comment[]
+  likes         Like[]
+  
+  featured      Boolean       @default(false)
+  viewCount     Int           @default(0)
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  resultedAt    DateTime?
+}
+
+enum CouponStatus {
+  PENDING   // Bekliyor
+  WON       // Kazandı
+  LOST      // Kaybetti
+  VOID      // İptal
+}
+
+model Match {
+  id            String      @id @default(cuid())
+  
+  homeTeam      String
+  awayTeam      String
+  league        String
+  category      Category
+  
+  matchDate     DateTime
+  prediction    String      // Tahmin (1, X, 2, Alt, Üst, vs)
+  odds          Float       // Oran
+  
+  status        MatchStatus @default(PENDING)
+  result        String?     // Sonuç
+  
+  couponId      String
+  coupon        Coupon      @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum Category {
+  FUTBOL
+  BASKETBOL
+  TENIS
+  VOLEYBOL
+  HENTBOL
+  BUZ_HOKEYI
+  DIGER
+}
+
+enum MatchStatus {
+  PENDING   // Oynanacak
+  WON       // Kazandı
+  LOST      // Kaybetti
+  VOID      // İptal
+}
+
+model Comment {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  couponId      String
+  coupon        Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Like {
+  id            String    @id @default(cuid())
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  couponId      String
+  coupon        Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@unique([userId, couponId])
+}
+
+model Follow {
+  id            String    @id @default(cuid())
+  
+  followerId    String
+  follower      User      @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  
+  followingId   String
+  following     User      @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@unique([followerId, followingId])
+}
