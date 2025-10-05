@@ -1,9 +1,7 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
+import {
   TrendingUp,
   TrendingDown,
   Users,
@@ -11,86 +9,111 @@ import {
   MessageSquare,
   Heart,
   Eye,
-  DollarSign,
   AlertCircle,
   CheckCircle,
   Clock,
   Trophy,
   ArrowRight,
-  MoreVertical,
   Plus
 } from 'lucide-react'
+import { prisma } from '@/lib/db'
 
-export default function AdminDashboardPage() {
-  // Mock data
-  const stats = [
+type StatCard = {
+  title: string
+  value: string | number
+  change?: string
+  trending: 'up' | 'down'
+  icon: any
+  color: 'blue' | 'green' | 'purple' | 'red'
+  bgColor: string
+  borderColor: string
+  textColor: string
+}
+
+export default async function AdminDashboardPage() {
+  const [totalCoupons, totalUsers, totalComments, totalLikes] = await Promise.all([
+    prisma.coupon.count(),
+    prisma.user.count(),
+    prisma.comment.count(),
+    prisma.like.count(),
+  ])
+
+  const stats: StatCard[] = [
     {
       title: 'Toplam Kupon',
-      value: '12,458',
-      change: '+12.5%',
+      value: totalCoupons.toLocaleString('tr-TR'),
+      change: '',
       trending: 'up',
       icon: FileText,
       color: 'blue',
       bgColor: 'bg-blue-500/10',
       borderColor: 'border-blue-500/30',
-      textColor: 'text-blue-400'
+      textColor: 'text-blue-400',
     },
     {
       title: 'Toplam Kullanıcı',
-      value: '8,234',
-      change: '+8.2%',
+      value: totalUsers.toLocaleString('tr-TR'),
+      change: '',
       trending: 'up',
       icon: Users,
       color: 'green',
       bgColor: 'bg-green-500/10',
       borderColor: 'border-green-500/30',
-      textColor: 'text-green-400'
+      textColor: 'text-green-400',
     },
     {
       title: 'Toplam Yorum',
-      value: '24,892',
-      change: '+15.3%',
+      value: totalComments.toLocaleString('tr-TR'),
+      change: '',
       trending: 'up',
       icon: MessageSquare,
       color: 'purple',
       bgColor: 'bg-purple-500/10',
       borderColor: 'border-purple-500/30',
-      textColor: 'text-purple-400'
+      textColor: 'text-purple-400',
     },
     {
       title: 'Toplam Beğeni',
-      value: '45,678',
-      change: '-2.4%',
-      trending: 'down',
+      value: totalLikes.toLocaleString('tr-TR'),
+      change: '',
+      trending: 'up',
       icon: Heart,
       color: 'red',
       bgColor: 'bg-red-500/10',
       borderColor: 'border-red-500/30',
-      textColor: 'text-red-400'
-    }
+      textColor: 'text-red-400',
+    },
   ]
 
-  const recentCoupons = [
-    { id: 1, user: 'MehmetY', matches: 5, odd: 8.45, status: 'pending', time: '5 dk önce' },
-    { id: 2, user: 'AhmetK', matches: 3, odd: 3.20, status: 'won', time: '12 dk önce' },
-    { id: 3, user: 'FatihS', matches: 8, odd: 156.30, status: 'lost', time: '28 dk önce' },
-    { id: 4, user: 'EmreB', matches: 4, odd: 12.80, status: 'pending', time: '35 dk önce' },
-    { id: 5, user: 'SerkanA', matches: 6, odd: 24.50, status: 'won', time: '1 saat önce' }
-  ]
+  const recentCoupons = await prisma.coupon.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    include: {
+      user: { select: { username: true } },
+      matches: { select: { id: true } },
+    },
+  })
 
-  const recentUsers = [
-    { name: 'Mehmet Yılmaz', email: 'mehmet@example.com', date: '2 dk önce', status: 'active' },
-    { name: 'Ahmet Kaya', email: 'ahmet@example.com', date: '15 dk önce', status: 'active' },
-    { name: 'Fatih Şahin', email: 'fatih@example.com', date: '28 dk önce', status: 'idle' },
-    { name: 'Emre Bulut', email: 'emre@example.com', date: '1 saat önce', status: 'idle' }
-  ]
+  const recentUsers = await prisma.user.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    select: { name: true, email: true, createdAt: true },
+  })
 
-  const topTipsters = [
-    { rank: 1, name: 'ProTahminci', winRate: 78.5, coupons: 234 },
-    { rank: 2, name: 'KralBahis', winRate: 76.2, coupons: 189 },
-    { rank: 3, name: 'GolKrali', winRate: 74.8, coupons: 167 },
-    { rank: 4, name: 'SuperBet', winRate: 72.3, coupons: 201 }
-  ]
+  const topPredictors = await prisma.user.findMany({
+    take: 5,
+    orderBy: { coupons: { _count: 'desc' } },
+    include: { _count: { select: { coupons: true } } },
+  })
+
+  const topTipsters = await Promise.all(
+    topPredictors.map(async (u, idx) => {
+      const won = await prisma.coupon.count({ where: { userId: u.id, status: 'WON' } })
+      const total = u._count.coupons
+      const winRate = total > 0 ? Math.round((won / total) * 100) : 0
+      return { rank: idx + 1, name: u.name || u.username, winRate, coupons: total }
+    })
+  )
 
   return (
     <div className="space-y-6">
@@ -112,7 +135,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid (Live) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon
@@ -130,7 +153,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <Badge className={`${stat.bgColor} ${stat.borderColor} ${stat.textColor} border`}>
                     <TrendIcon className="h-3 w-3 mr-1" />
-                    {stat.change}
+                    {stat.change || 'Canlı'}
                   </Badge>
                 </div>
                 <div>
@@ -143,40 +166,18 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
-      {/* Charts & Activity */}
+      {/* Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Weekly Activity Chart */}
+        {/* Placeholder for future charts */}
         <Card className="glass-dark border-white/5 lg:col-span-2">
           <CardHeader className="border-b border-white/5">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-blue-400" />
-                <span>Haftalık Aktivite</span>
-              </CardTitle>
-              <Button variant="outline" size="sm" className="glass border-white/10">
-                Bu Ay
-              </Button>
-            </div>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-blue-400" />
+              <span>Aktivite</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((day, i) => {
-                const height = [65, 80, 45, 90, 75, 50, 70][i]
-                return (
-                  <div key={day} className="flex items-center space-x-4">
-                    <span className="text-sm text-foreground/60 w-8">{day}</span>
-                    <div className="flex-1 bg-white/5 rounded-full h-8 overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-end pr-3 transition-all duration-500"
-                        style={{ width: `${height}%` }}
-                      >
-                        <span className="text-xs font-semibold text-white">{height}%</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+          <CardContent className="p-6 text-sm text-foreground/60">
+            Grafikler yakında. Şimdilik canlı istatistikler ve listeler aktif.
           </CardContent>
         </Card>
 
@@ -236,25 +237,25 @@ export default function AdminDashboardPage() {
                 <div key={coupon.id} className="flex items-center justify-between p-3 rounded-lg glass hover:bg-white/5 transition-all group cursor-pointer">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                      {coupon.user.charAt(0)}
+                      {coupon.user.username.substring(0,1).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm group-hover:text-blue-400 transition">{coupon.user}</p>
-                      <p className="text-xs text-foreground/60">{coupon.matches} maç • Oran: {coupon.odd}</p>
+                      <p className="font-semibold text-sm group-hover:text-blue-400 transition">{coupon.user.username}</p>
+                      <p className="text-xs text-foreground/60">{coupon.matches.length} maç • Oran: {coupon.totalOdds}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge className={
-                      coupon.status === 'won' ? 'bg-green-500/20 border-green-500/30 text-green-400' :
-                      coupon.status === 'lost' ? 'bg-red-500/20 border-red-500/30 text-red-400' :
+                      coupon.status === 'WON' ? 'bg-green-500/20 border-green-500/30 text-green-400' :
+                      coupon.status === 'LOST' ? 'bg-red-500/20 border-red-500/30 text-red-400' :
                       'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'
                     }>
-                      {coupon.status === 'won' ? <CheckCircle className="h-3 w-3 mr-1" /> : null}
-                      {coupon.status === 'lost' ? <AlertCircle className="h-3 w-3 mr-1" /> : null}
-                      {coupon.status === 'pending' ? <Clock className="h-3 w-3 mr-1" /> : null}
-                      {coupon.status === 'won' ? 'Kazandı' : coupon.status === 'lost' ? 'Kaybetti' : 'Bekliyor'}
+                      {coupon.status === 'WON' ? <CheckCircle className="h-3 w-3 mr-1" /> : null}
+                      {coupon.status === 'LOST' ? <AlertCircle className="h-3 w-3 mr-1" /> : null}
+                      {coupon.status === 'PENDING' ? <Clock className="h-3 w-3 mr-1" /> : null}
+                      {coupon.status === 'WON' ? 'Kazandı' : coupon.status === 'LOST' ? 'Kaybetti' : 'Bekliyor'}
                     </Badge>
-                    <span className="text-xs text-foreground/50">{coupon.time}</span>
+                    <span className="text-xs text-foreground/50">{new Date(coupon.createdAt).toLocaleString('tr-TR')}</span>
                   </div>
                 </div>
               ))}
@@ -290,10 +291,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-1">
-                      <div className={`h-2 w-2 rounded-full ${user.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
-                    </div>
-                    <span className="text-xs text-foreground/50">{user.date}</span>
+                    <span className="text-xs text-foreground/50">{new Date(user.createdAt).toLocaleString('tr-TR')}</span>
                   </div>
                 </div>
               ))}
