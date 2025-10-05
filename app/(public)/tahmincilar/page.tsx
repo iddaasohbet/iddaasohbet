@@ -1,3 +1,19 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+type Predictor = {
+  id: string
+  username: string
+  verified?: boolean
+  name?: string
+  bio?: string
+  winRate: number
+  totalCoupons: number
+  totalProfit: number
+  followers: number
+  rank: number
+}
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -20,8 +36,7 @@ import {
 
 async function getTahminciData() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'
-    const res = await fetch(`${baseUrl}/api/tahmincilar`, {
+    const res = await fetch(`/api/tahmincilar`, {
       cache: 'no-store'
     })
     if (!res.ok) {
@@ -158,7 +173,7 @@ export default async function TahmincilerPage() {
             {/* Top 3 Podium */}
             {topPredictors.length >= 3 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                {topPredictors.slice(0, 3).map((predictor, index) => (
+                {topPredictors.slice(0, 3).map((predictor: Predictor, index: number) => (
             <Card 
               key={predictor.id} 
               className={`glass-dark border-white/10 card-premium relative overflow-hidden ${
@@ -247,7 +262,7 @@ export default async function TahmincilerPage() {
                 </h2>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-                  {topPredictors.slice(3).map((predictor) => (
+                  {topPredictors.slice(3).map((predictor: Predictor) => (
               <Card key={predictor.id} className="glass-dark border-white/5 card-premium">
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">

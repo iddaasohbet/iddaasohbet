@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,8 +23,7 @@ import {
 
 async function getIstatistiklerData() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'
-    const res = await fetch(`${baseUrl}/api/istatistikler`, {
+    const res = await fetch(`/api/istatistikler`, {
       cache: 'no-store'
     })
     if (!res.ok) {
