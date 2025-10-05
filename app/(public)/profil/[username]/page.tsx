@@ -196,14 +196,18 @@ export default async function ProfilPage({ params }: Props) {
                 <div className="flex flex-wrap gap-3">
                   {isOwnProfile ? (
                     <>
-                      <Button className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Profili Düzenle
+                      <Button asChild className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold">
+                        <a href="/hesap/ayarlar">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Profili Düzenle
+                        </a>
                       </Button>
                       {!user.verified && (
-                        <Button variant="outline" className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10">
-                          <Crown className="h-4 w-4 mr-2" />
-                          Tahminçi Başvurusu Yap
+                        <Button asChild variant="outline" className="border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10">
+                          <a href="/tahminçi-basvuru">
+                            <Crown className="h-4 w-4 mr-2" />
+                            Tahminçi Başvurusu Yap
+                          </a>
                         </Button>
                       )}
                     </>

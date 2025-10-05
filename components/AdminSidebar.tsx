@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Bell,
   Menu,
-  X
+  X,
+  Crown
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
@@ -49,6 +50,12 @@ const menuItems = [
     title: 'Tahmincilar',
     icon: Trophy,
     href: '/admin/tahmincilar',
+    badge: null
+  },
+  {
+    title: 'Başvurular',
+    icon: Crown,
+    href: '/admin/basvurular',
     badge: null
   },
   {

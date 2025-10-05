@@ -158,3 +158,28 @@ model Follow {
   
   @@unique([followerId, followingId])
 }
+
+model TipsterApplication {
+  id            String                    @id @default(cuid())
+  
+  userId        String
+  userName      String    // Kullanıcı adı (snapshot)
+  userEmail     String    // E-posta (snapshot)
+  
+  message       String                    @db.Text  // Neden tahminçi olmak istiyor
+  experience    String?                   @db.Text  // Deneyim ve başarılar
+  
+  status        ApplicationStatus         @default(PENDING)
+  adminNote     String?                   @db.Text  // Admin notu
+  adminId       String?
+  
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  decidedAt     DateTime?
+}
+
+enum ApplicationStatus {
+  PENDING   // Bekliyor
+  APPROVED  // Onaylandı
+  REJECTED  // Reddedildi
+}
