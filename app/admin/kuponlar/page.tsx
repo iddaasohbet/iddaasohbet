@@ -130,7 +130,7 @@ export default function AdminKuponlarPage() {
     }
   }
 
-  // Add Coupon
+  // Add Coupon - YENİ SİSTEM
   const handleAddCoupon = async () => {
     console.log('handleAddCoupon called')
     setSubmitting(true)
@@ -149,39 +149,41 @@ export default function AdminKuponlarPage() {
         team1: m.team1 || 'Ev Sahibi', 
         team2: m.team2 || 'Deplasman', 
         pick: m.pick || '1', 
-        odd: m.odd || '1.00' 
+        odd: m.odd || '1.00',
+        league: 'Genel'
       }))
     }
     
-    console.log('Sending request:', body)
+    console.log('Sending request to NEW API:', body)
     
     try {
-      const res = await fetch('/api/kuponlar', {
+      const res = await fetch('/api/admin/add-coupon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       })
       
       console.log('Response status:', res.status)
+      const data = await res.json()
+      console.log('Response data:', data)
       
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        console.error('Error response:', data)
         alert(`Hata: ${data.error || 'Kupon oluşturulamadı'}`)
         return
       }
       
-      const result = await res.json()
-      console.log('Success:', result)
-      
-      alert('Kupon başarıyla eklendi!')
-      setShowAddModal(false)
-      resetForm()
-      await loadCoupons()
-      await loadStats()
-    } catch (e) {
+      if (data.success) {
+        alert('✅ Kupon başarıyla eklendi!')
+        setShowAddModal(false)
+        resetForm()
+        await loadCoupons()
+        await loadStats()
+      } else {
+        alert('Kupon eklenemedi')
+      }
+    } catch (e: any) {
       console.error('Network error:', e)
-      alert(`Ağ hatası: ${e}`)
+      alert(`Ağ hatası: ${e.message}`)
     } finally {
       setSubmitting(false)
     }
