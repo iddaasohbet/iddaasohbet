@@ -93,13 +93,14 @@ export async function POST(request: NextRequest) {
         league: String(m.league || 'Bilinmeyen'),
         matchDate: m.matchDate ? new Date(m.matchDate) : new Date(),
       }))
-      .filter((m: any) => Number.isFinite(m.odds) && m.odds > 0)
+      .filter((m: any) => Number.isFinite(m.odds) && m.odds > 0 && m.homeTeam && m.awayTeam)
 
-    if (sanitizedMatches.length === 0) {
-      return NextResponse.json({ error: 'En az bir geçerli maç gereklidir' }, { status: 400 })
-    }
-
-    const computedTotalOdds = sanitizedMatches.reduce((acc: number, m: any) => acc * m.odds, 1)
+    const computedTotalOdds = sanitizedMatches.length > 0
+      ? sanitizedMatches.reduce((acc: number, m: any) => acc * m.odds, 1)
+      : 1
+    const defaultTitle = (title && String(title).trim().length > 0)
+      ? String(title).trim()
+      : `Kupon - ${new Date().toLocaleString('tr-TR')} (${(sanitizedMatches?.length ?? 0)} maç)`
     const stakeNumber = Number.parseFloat(String(stake))
     const totalOddsNumber = Number.isFinite(Number.parseFloat(String(totalOdds))) && Number.parseFloat(String(totalOdds)) > 0
       ? Number.parseFloat(String(totalOdds))
@@ -111,24 +112,26 @@ export async function POST(request: NextRequest) {
     // Kupon oluştur
     const coupon = await prisma.coupon.create({
       data: {
-        title,
+        title: defaultTitle,
         description,
         stake: Number.isFinite(stakeNumber) ? stakeNumber : 0,
         totalOdds: totalOddsNumber,
         potentialWin: Number.isFinite(potentialWinNumber) ? potentialWinNumber : 0,
         status: 'PENDING',
         userId: session.user.id,
-        matches: {
-          create: sanitizedMatches.map((m: any) => ({
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            prediction: m.prediction || '-',
-            odds: m.odds,
-            league: m.league,
-            category: 'DIGER',
-            matchDate: m.matchDate,
-          })),
-        },
+        ...(sanitizedMatches.length > 0 && {
+          matches: {
+            create: sanitizedMatches.map((m: any) => ({
+              homeTeam: m.homeTeam,
+              awayTeam: m.awayTeam,
+              prediction: m.prediction || '-',
+              odds: m.odds,
+              league: m.league,
+              category: 'DIGER',
+              matchDate: m.matchDate,
+            })),
+          },
+        }),
       },
       include: {
         user: {

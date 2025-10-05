@@ -695,12 +695,7 @@ export default function AdminKuponlarPage() {
                 <Button 
                   onClick={handleAddCoupon}
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                  disabled={
-                    submitting ||
-                    !formData.totalOdds ||
-                    !formData.stake ||
-                    formData.matches.some(m => !m.team1 || !m.team2 || !m.pick || !m.odd)
-                  }
+                  disabled={submitting}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {submitting ? 'Gönderiliyor...' : 'Kupon Ekle'}
