@@ -26,6 +26,10 @@ interface Props {
   }
 }
 
+// Next.js 15 için dynamic route configuration
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+
 async function getUserProfile(username: string) {
   try {
     const user = await prisma.user.findUnique({
