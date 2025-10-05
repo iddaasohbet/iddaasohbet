@@ -33,16 +33,16 @@ interface Coupon {
   id: string
   title: string
   description: string | null
-  totalOdds: number
+  totalOdds: number | string | null
   status: string
   createdAt: Date
   user: Author | null
   author?: Author | null
-  matches: Match[]
-  _count: {
-    likes: number
-    comments: number
-  }
+  matches: Match[] | null
+  _count?: {
+    likes?: number
+    comments?: number
+  } | null
 }
 
 interface Props {
@@ -73,6 +73,11 @@ export default function CouponCard({ coupon }: Props) {
 
   const config = statusConfig[coupon.status as keyof typeof statusConfig] || statusConfig.PENDING
   const StatusIcon = config.icon
+  const author = coupon.user || coupon.author || ({} as Author)
+  const matches = Array.isArray(coupon.matches) ? coupon.matches : []
+  const totalOddsNum = Number(coupon.totalOdds || 0)
+  const likeCount = (coupon._count?.likes as number) ?? 0
+  const commentCount = (coupon._count?.comments as number) ?? 0
 
   return (
     <Link href={`/kupon/${coupon.id}`}>
@@ -82,17 +87,17 @@ export default function CouponCard({ coupon }: Props) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8 ring-2 ring-white/10">
-                <AvatarImage src={coupon.user?.avatar || undefined} alt={coupon.user?.name || 'User'} />
+                <AvatarImage src={author?.avatar || undefined} alt={author?.name || 'User'} />
                 <AvatarFallback className="bg-gradient-to-br from-green-500 to-yellow-400 text-black text-xs font-bold">
-                  {coupon.user?.username.substring(0, 2).toUpperCase() || 'UU'}
+                  {(author?.username || 'uu').substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center space-x-1">
                   <p className="text-sm font-semibold text-foreground group-hover:text-green-400 transition-colors">
-                    {coupon.user?.username || 'user'}
+                    {author?.username || 'user'}
                   </p>
-                  {coupon.user?.verified && (
+                  {author?.verified && (
                     <Award className="h-3 w-3 text-blue-400" />
                   )}
                 </div>
@@ -116,8 +121,8 @@ export default function CouponCard({ coupon }: Props) {
         <CardContent className="space-y-4">
           {/* Matches */}
           <div className="space-y-2">
-            {coupon.matches.slice(0, 3).map((match) => (
-              <div key={match.id} className="glass p-3 rounded-lg border border-white/5">
+            {matches.slice(0, 3).map((match, idx) => (
+              <div key={match.id || idx} className="glass p-3 rounded-lg border border-white/5">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-xs text-foreground/50">{match.league}</p>
                   {match.result && (
@@ -132,14 +137,14 @@ export default function CouponCard({ coupon }: Props) {
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-foreground/70">{match.prediction}</p>
                   <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/30 text-xs">
-                    {match.odds.toFixed(2)}
+                    {Number(match.odds || 0).toFixed(2)}
                   </Badge>
                 </div>
               </div>
             ))}
-            {coupon.matches.length > 3 && (
+            {matches.length > 3 && (
               <p className="text-xs text-center text-foreground/50">
-                +{coupon.matches.length - 3} maç daha
+                +{matches.length - 3} maç daha
               </p>
             )}
           </div>
@@ -149,16 +154,16 @@ export default function CouponCard({ coupon }: Props) {
             <div className="flex items-center space-x-4 text-sm text-foreground/60">
               <div className="flex items-center space-x-1">
                 <Heart className="h-4 w-4" />
-                <span>{coupon._count.likes}</span>
+                <span>{likeCount}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <MessageCircle className="h-4 w-4" />
-                <span>{coupon._count.comments}</span>
+                <span>{commentCount}</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-4 w-4 text-green-400" />
-              <span className="text-lg font-bold text-green-400">{coupon.totalOdds.toFixed(2)}</span>
+              <span className="text-lg font-bold text-green-400">{Number(totalOddsNum).toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
