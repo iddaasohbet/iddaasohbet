@@ -86,8 +86,9 @@ async function getTopPredictors() {
   }
 }
 
-// Revalidate her 10 saniyede bir
-export const revalidate = 10
+// Dinamik sayfa - her zaman güncel veri
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home() {
   const [featuredCoupons, topPredictors] = await Promise.all([
