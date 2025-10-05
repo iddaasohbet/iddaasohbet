@@ -95,11 +95,12 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         matches: {
           create: matches.map((match: any) => ({
-            team1: match.team1,
-            team2: match.team2,
-            pick: match.pick,
-            odd: parseFloat(match.odd),
+            homeTeam: match.team1,
+            awayTeam: match.team2,
+            prediction: match.pick,
+            odds: parseFloat(match.odd),
             league: match.league || 'Bilinmeyen',
+            category: 'DIGER',
             matchDate: match.matchDate ? new Date(match.matchDate) : new Date(),
           })),
         },
