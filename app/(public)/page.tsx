@@ -72,9 +72,9 @@ async function getTopPredictors() {
 
       return {
         id: user.id,
-        name: user.name,
-        username: user.username,
-        avatar: user.avatar,
+        name: user.name || 'Kullanıcı',
+        username: user.username || 'user',
+        avatar: user.avatar || null,
         winRate,
         totalCoupons,
         followers: user._count.followers,
