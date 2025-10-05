@@ -10,30 +10,12 @@ import { prisma } from '@/lib/db'
 
 async function getFeaturedCoupons() {
   try {
-    const coupons = await prisma.coupon.findMany({
-      take: 4,
-      orderBy: {
-        createdAt: 'desc',
-      },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatar: true,
-            },
-          },
-        matches: true,
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ? process.env.NEXT_PUBLIC_APP_URL : ''}/api/kuponlar?limit=4`, {
+      cache: 'no-store'
     })
-    return coupons
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.coupons || []
   } catch (error) {
     console.error('Kuponlar yüklenirken hata:', error)
     return []
@@ -117,7 +99,7 @@ export default async function Home() {
 
         {featuredCoupons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCoupons.map((coupon) => (
+            {featuredCoupons.map((coupon: any) => (
               <CouponCard key={coupon.id} coupon={{
                 ...coupon,
                 user: coupon.user ? { ...coupon.user, verified: (coupon as any).user?.verified ?? false } : null,
