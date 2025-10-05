@@ -46,10 +46,14 @@ export default function KuponlarPage() {
   }
 
   const filteredCoupons = searchTerm
-    ? coupons.filter((coupon) =>
-        coupon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        coupon.user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? coupons.filter((coupon) => {
+        const term = searchTerm.toLowerCase()
+        const title = (coupon?.title || '').toLowerCase()
+        const userName = (
+          (coupon?.user?.name || coupon?.user?.username || '')
+        ).toLowerCase()
+        return title.includes(term) || userName.includes(term)
+      })
     : coupons
 
   return (
