@@ -132,35 +132,56 @@ export default function AdminKuponlarPage() {
 
   // Add Coupon
   const handleAddCoupon = async () => {
+    console.log('handleAddCoupon called')
     setSubmitting(true)
+    
     const defaultTitle = formData.title && formData.title.trim().length > 0
       ? formData.title.trim()
       : `Kupon - ${new Date().toLocaleString('tr-TR')} (${formData.matches.length} maç)`
+    
     const body = {
       title: defaultTitle,
       description: '',
-      stake: formData.stake,
-      totalOdds: formData.totalOdds,
-      potentialWin: (parseFloat(formData.totalOdds || '0') * parseFloat(formData.stake || '0')).toFixed(2),
-      matches: formData.matches.map(m => ({ team1: m.team1, team2: m.team2, pick: m.pick, odd: m.odd }))
+      stake: formData.stake || '100',
+      totalOdds: formData.totalOdds || '1.00',
+      potentialWin: (parseFloat(formData.totalOdds || '1') * parseFloat(formData.stake || '100')).toFixed(2),
+      matches: formData.matches.map(m => ({ 
+        team1: m.team1 || 'Ev Sahibi', 
+        team2: m.team2 || 'Deplasman', 
+        pick: m.pick || '1', 
+        odd: m.odd || '1.00' 
+      }))
     }
+    
+    console.log('Sending request:', body)
+    
     try {
       const res = await fetch('/api/kuponlar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       })
+      
+      console.log('Response status:', res.status)
+      
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'Kupon oluşturulamadı')
+        console.error('Error response:', data)
+        alert(`Hata: ${data.error || 'Kupon oluşturulamadı'}`)
         return
       }
+      
+      const result = await res.json()
+      console.log('Success:', result)
+      
+      alert('Kupon başarıyla eklendi!')
       setShowAddModal(false)
       resetForm()
       await loadCoupons()
       await loadStats()
     } catch (e) {
-      alert('Ağ hatası: Kupon oluşturulamadı')
+      console.error('Network error:', e)
+      alert(`Ağ hatası: ${e}`)
     } finally {
       setSubmitting(false)
     }
