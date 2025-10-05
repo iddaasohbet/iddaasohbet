@@ -67,7 +67,8 @@ async function getCoupon(id: string) {
 }
 
 export default async function KuponDetayPage({ params }: { params: { id: string } }) {
-  const coupon = await getCoupon(params.id)
+  const { id } = await params
+  const coupon = await getCoupon(id)
 
   if (!coupon) {
     notFound()

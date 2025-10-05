@@ -122,7 +122,7 @@ async function getUserProfile(username: string) {
 }
 
 export default async function ProfilPage({ params }: Props) {
-  const { username } = params
+  const { username } = await params
   const session = await auth()
   const user = await getUserProfile(username)
 
