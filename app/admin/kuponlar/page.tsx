@@ -133,8 +133,11 @@ export default function AdminKuponlarPage() {
   // Add Coupon
   const handleAddCoupon = async () => {
     setSubmitting(true)
+    const defaultTitle = formData.title && formData.title.trim().length > 0
+      ? formData.title.trim()
+      : `Kupon - ${new Date().toLocaleString('tr-TR')} (${formData.matches.length} maç)`
     const body = {
-      title: formData.title,
+      title: defaultTitle,
       description: '',
       stake: formData.stake,
       totalOdds: formData.totalOdds,
@@ -692,7 +695,12 @@ export default function AdminKuponlarPage() {
                 <Button 
                   onClick={handleAddCoupon}
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                  disabled={submitting || !formData.title || !formData.totalOdds || !formData.stake}
+                  disabled={
+                    submitting ||
+                    !formData.totalOdds ||
+                    !formData.stake ||
+                    formData.matches.some(m => !m.team1 || !m.team2 || !m.pick || !m.odd)
+                  }
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {submitting ? 'Gönderiliyor...' : 'Kupon Ekle'}
