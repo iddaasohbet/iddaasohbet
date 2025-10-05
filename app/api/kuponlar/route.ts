@@ -72,14 +72,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, stake, totalOdds, potentialWin, matches } = body
 
-    // Validasyon
-    if (!title || !matches || matches.length === 0) {
-      return NextResponse.json(
-        { error: 'Başlık ve en az 1 maç gereklidir' },
-        { status: 400 }
-      )
-    }
-
     // Sunucu tarafı doğrulama ve hesaplama
     const sanitizedMatches = (Array.isArray(matches) ? matches : [])
       .map((m: any) => ({
@@ -107,6 +99,9 @@ export async function POST(request: NextRequest) {
       : Number.parseFloat((totalOddsNumber * (Number.isFinite(stakeNumber) ? stakeNumber : 0)).toFixed(2))
 
     // Kupon oluştur
+    const fallbackUser = !session?.user
+      ? await prisma.user.findFirst({ select: { id: true }, orderBy: { createdAt: 'asc' } })
+      : null
     const coupon = await prisma.coupon.create({
       data: {
         title: defaultTitle,
@@ -115,14 +110,7 @@ export async function POST(request: NextRequest) {
         totalOdds: totalOddsNumber,
         potentialWin: Number.isFinite(potentialWinNumber) ? potentialWinNumber : 0,
         status: 'PENDING',
-        userId: session?.user?.id || (await (async () => {
-          try {
-            const admin = await prisma.user.findFirst({ where: { role: 'ADMIN' as any } })
-            return admin?.id || ''
-          } catch {
-            return ''
-          }
-        })()),
+        userId: session?.user?.id || fallbackUser?.id || undefined as any,
         ...(sanitizedMatches.length > 0 && {
           matches: {
             create: sanitizedMatches.map((m: any) => ({
@@ -154,7 +142,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Kupon oluşturulurken hata:', error)
     return NextResponse.json(
-      { error: 'Kupon oluşturulamadı' },
+      { error: (error as any)?.message || 'Kupon oluşturulamadı' },
       { status: 500 }
     )
   }
