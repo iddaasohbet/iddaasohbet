@@ -465,7 +465,7 @@ export default function AdminKuponlarPage() {
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                          {coupon.user?.username?.substring(0,1).toUpperCase()}
+                          {(coupon.user?.username || coupon.user?.name || 'U').toString().charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{coupon.user?.username}</p>
@@ -502,7 +502,7 @@ export default function AdminKuponlarPage() {
                       {getStatusBadge(coupon.status)}
                     </td>
                     <td className="p-4">
-                      <span className="text-xs text-foreground/60">{new Date(coupon.createdAt).toLocaleString('tr-TR')}</span>
+                      <span className="text-xs text-foreground/60">{coupon?.createdAt ? new Date(coupon.createdAt).toLocaleString('tr-TR') : '-'}</span>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end space-x-2">
