@@ -11,19 +11,19 @@ import { prisma } from '@/lib/db'
 async function getFeaturedCoupons() {
   try {
     const coupons = await prisma.coupon.findMany({
-      take: 6,
+      take: 4,
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
           },
-        },
         matches: true,
         _count: {
           select: {
@@ -118,7 +118,10 @@ export default async function Home() {
         {featuredCoupons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredCoupons.map((coupon) => (
-              <CouponCard key={coupon.id} coupon={coupon} />
+              <CouponCard key={coupon.id} coupon={{
+                ...coupon,
+                user: coupon.user ? { ...coupon.user, verified: (coupon as any).user?.verified ?? false } : null,
+              }} />
             ))}
           </div>
         ) : (
