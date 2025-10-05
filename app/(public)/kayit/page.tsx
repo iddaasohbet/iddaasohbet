@@ -2,23 +2,71 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trophy, Lock, Mail, User } from 'lucide-react'
+import { Trophy, Lock, Mail, User, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function KayitPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
+    name: '',
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement registration logic
-    console.log('Register:', formData)
+    setError('')
+    setSuccess(false)
+
+    // Şifre kontrolü
+    if (formData.password !== formData.confirmPassword) {
+      setError('Şifreler eşleşmiyor')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Bir hata oluştu')
+        return
+      }
+
+      // Başarılı kayıt
+      setSuccess(true)
+      
+      // 2 saniye sonra giriş sayfasına yönlendir
+      setTimeout(() => {
+        router.push('/giris?registered=true')
+      }, 2000)
+    } catch (err) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -48,7 +96,47 @@ export default function KayitPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Success Message */}
+          {success && (
+            <div className="mb-4 p-4 rounded-lg glass-dark border border-green-500/50 bg-green-500/10 flex items-start space-x-3 animate-slideUp">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-green-400 font-semibold">Kayıt Başarılı!</p>
+                <p className="text-sm text-foreground/70 mt-1">Giriş sayfasına yönlendiriliyorsunuz...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 rounded-lg glass-dark border border-red-500/50 bg-red-500/10 flex items-start space-x-3 animate-shake">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-400 font-semibold">Hata!</p>
+                <p className="text-sm text-foreground/70 mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-foreground/80">
+                Ad Soyad
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Ahmet Yılmaz"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium text-foreground/80">
                 Kullanıcı Adı
@@ -63,6 +151,7 @@ export default function KayitPage() {
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -80,6 +169,7 @@ export default function KayitPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -97,6 +187,7 @@ export default function KayitPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -114,11 +205,12 @@ export default function KayitPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
             <div className="flex items-start space-x-2 text-sm glass p-3 rounded-lg border border-white/10">
-              <input type="checkbox" className="mt-0.5 rounded border-white/20 bg-black/20" required />
+              <input type="checkbox" className="mt-0.5 rounded border-white/20 bg-black/20" required disabled={loading} />
               <span className="text-foreground/70">
                 <Link href="/kullanim-kosullari" className="text-green-400 hover:text-yellow-400 transition-colors font-medium">
                   Kullanım koşullarını
@@ -134,8 +226,9 @@ export default function KayitPage() {
               type="submit" 
               className="w-full h-12 text-base bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium"
               size="lg"
+              disabled={loading}
             >
-              Kayıt Ol
+              {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
             </Button>
           </form>
         </CardContent>

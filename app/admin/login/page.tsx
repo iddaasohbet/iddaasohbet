@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,7 @@ import {
 import Link from 'next/link'
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -30,16 +33,26 @@ export default function AdminLoginPage() {
     setError('')
     setLoading(true)
 
-    // Simulated login - replace with actual auth later
-    setTimeout(() => {
-      if (email === 'admin@iddaasohbet.com' && password === 'admin123') {
-        // Success - redirect to admin dashboard
-        window.location.href = '/admin/dashboard'
-      } else {
-        setError('E-posta veya şifre hatalı!')
-        setLoading(false)
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError('E-posta veya şifre hatalı veya admin yetkiniz yok!')
+        return
       }
-    }, 1500)
+
+      // Başarılı - dashboard'a yönlendir
+      router.push('/admin/dashboard')
+      router.refresh()
+    } catch (err) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

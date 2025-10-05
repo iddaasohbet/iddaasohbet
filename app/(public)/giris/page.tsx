@@ -1,20 +1,57 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trophy, Lock, Mail } from 'lucide-react'
+import { Trophy, Lock, Mail, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function GirisPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showRegisteredMessage, setShowRegisteredMessage] = useState(false)
+
+  useEffect(() => {
+    // Kayıt başarılı mesajını göster
+    if (searchParams.get('registered') === 'true') {
+      setShowRegisteredMessage(true)
+      // 5 saniye sonra gizle
+      setTimeout(() => setShowRegisteredMessage(false), 5000)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement login logic
-    console.log('Login:', { email, password })
+    setError('')
+    setLoading(true)
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError('E-posta veya şifre hatalı')
+        return
+      }
+
+      // Başarılı giriş - anasayfaya yönlendir
+      router.push('/')
+      router.refresh()
+    } catch (err) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -44,6 +81,28 @@ export default function GirisPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Kayıt Başarılı Mesajı */}
+          {showRegisteredMessage && (
+            <div className="mb-4 p-4 rounded-lg glass-dark border border-green-500/50 bg-green-500/10 flex items-start space-x-3 animate-slideUp">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-green-400 font-semibold">Kayıt Başarılı!</p>
+                <p className="text-sm text-foreground/70 mt-1">Şimdi giriş yapabilirsiniz.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 rounded-lg glass-dark border border-red-500/50 bg-red-500/10 flex items-start space-x-3 animate-shake">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-400 font-semibold">Hata!</p>
+                <p className="text-sm text-foreground/70 mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground/80">
@@ -59,6 +118,7 @@ export default function GirisPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -76,12 +136,13 @@ export default function GirisPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 glass border-white/10 focus:border-green-500/50 bg-black/20"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center space-x-2 text-foreground/70 hover:text-foreground cursor-pointer">
-                <input type="checkbox" className="rounded border-white/20 bg-black/20" />
+                <input type="checkbox" className="rounded border-white/20 bg-black/20" disabled={loading} />
                 <span>Beni hatırla</span>
               </label>
               <Link href="/sifremi-unuttum" className="text-green-400 hover:text-yellow-400 transition-colors font-medium">
@@ -92,8 +153,9 @@ export default function GirisPage() {
               type="submit" 
               className="w-full h-12 text-base bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium"
               size="lg"
+              disabled={loading}
             >
-              Giriş Yap
+              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </Button>
           </form>
         </CardContent>

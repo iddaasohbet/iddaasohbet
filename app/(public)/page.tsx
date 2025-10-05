@@ -4,80 +4,94 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, Flame, Award, ArrowRight, Zap, Shield, BarChart3, Crown } from 'lucide-react'
+import { TrendingUp, Flame, Award, ArrowRight, Zap, Shield, BarChart3, Crown, Trophy } from 'lucide-react'
 import Link from 'next/link'
+import { prisma } from '@/lib/db'
 
-// Demo data
-const featuredCoupons = [
-  {
-    id: '1',
-    title: 'Bugünün En İyi 5\'lisi - Yüksek Oranlı Kupon 🔥',
-    totalOdds: 12.45,
-    status: 'PENDING',
-    viewCount: 1250,
-    createdAt: new Date(),
-    user: {
-      username: 'tahminpro',
-      avatar: null,
-      winRate: 78
-    },
-    matches: [
-      { homeTeam: 'Fenerbahçe', awayTeam: 'Galatasaray', prediction: '1', odds: 2.50, category: 'FUTBOL' },
-      { homeTeam: 'Barcelona', awayTeam: 'Real Madrid', prediction: 'KG VAR', odds: 1.85, category: 'FUTBOL' },
-      { homeTeam: 'Man City', awayTeam: 'Liverpool', prediction: 'ÜST 2.5', odds: 1.95, category: 'FUTBOL' },
-      { homeTeam: 'Lakers', awayTeam: 'Warriors', prediction: '1', odds: 2.10, category: 'BASKETBOL' },
-      { homeTeam: 'Beşiktaş', awayTeam: 'Trabzonspor', prediction: 'KG VAR', odds: 1.75, category: 'FUTBOL' }
-    ],
-    _count: { likes: 156, comments: 43 }
-  },
-  {
-    id: '2',
-    title: 'Günün Banker Kupon - Düşük Riskli 💰',
-    totalOdds: 3.85,
-    status: 'WON',
-    viewCount: 892,
-    createdAt: new Date(),
-    user: {
-      username: 'bankercim',
-      avatar: null,
-      winRate: 85
-    },
-    matches: [
-      { homeTeam: 'Bayern Munich', awayTeam: 'Schalke', prediction: '1', odds: 1.35, category: 'FUTBOL' },
-      { homeTeam: 'PSG', awayTeam: 'Lorient', prediction: '1', odds: 1.25, category: 'FUTBOL' },
-      { homeTeam: 'Juventus', awayTeam: 'Salernitana', prediction: '1', odds: 1.40, category: 'FUTBOL' }
-    ],
-    _count: { likes: 234, comments: 67 }
-  },
-  {
-    id: '3',
-    title: 'Premier League Özel - Alt Üst Kombinasyonu ⚽',
-    totalOdds: 8.20,
-    status: 'WON',
-    viewCount: 2100,
-    createdAt: new Date(),
-    user: {
-      username: 'premiermaster',
-      avatar: null,
-      winRate: 72
-    },
-    matches: [
-      { homeTeam: 'Arsenal', awayTeam: 'Chelsea', prediction: 'ÜST 2.5', odds: 1.90, category: 'FUTBOL' },
-      { homeTeam: 'Newcastle', awayTeam: 'Brighton', prediction: 'ÜST 2.5', odds: 1.85, category: 'FUTBOL' },
-      { homeTeam: 'Tottenham', awayTeam: 'West Ham', prediction: '1', odds: 2.10, category: 'FUTBOL' }
-    ],
-    _count: { likes: 345, comments: 89 }
+async function getFeaturedCoupons() {
+  try {
+    const coupons = await prisma.coupon.findMany({
+      take: 6,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        matches: true,
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+    })
+    return coupons
+  } catch (error) {
+    console.error('Kuponlar yüklenirken hata:', error)
+    return []
   }
-]
+}
 
-const topPredictors = [
-  { username: 'tahminpro', winRate: 85, totalCoupons: 150, followers: 2500 },
-  { username: 'bankercim', winRate: 82, totalCoupons: 200, followers: 2100 },
-  { username: 'premiermaster', winRate: 78, totalCoupons: 175, followers: 1800 },
-  { username: 'iddaaaslan', winRate: 76, totalCoupons: 120, followers: 1500 }
-]
+async function getTopPredictors() {
+  try {
+    // Kullanıcıları kupon sayısına göre sırala
+    const users = await prisma.user.findMany({
+      take: 4,
+      include: {
+        _count: {
+          select: {
+            coupons: true,
+            followers: true,
+          },
+        },
+        coupons: {
+          select: {
+            status: true,
+          },
+        },
+      },
+      orderBy: {
+        coupons: {
+          _count: 'desc',
+        },
+      },
+    })
 
-export default function Home() {
+    return users.map((user) => {
+      const wonCoupons = user.coupons.filter((c) => c.status === 'WON').length
+      const totalCoupons = user._count.coupons
+      const winRate = totalCoupons > 0 ? Math.round((wonCoupons / totalCoupons) * 100) : 0
+
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        avatar: user.avatar,
+        winRate,
+        totalCoupons,
+        followers: user._count.followers,
+      }
+    })
+  } catch (error) {
+    console.error('Tahminler yüklenirken hata:', error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const [featuredCoupons, topPredictors] = await Promise.all([
+    getFeaturedCoupons(),
+    getTopPredictors(),
+  ])
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -97,123 +111,141 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredCoupons.map((coupon) => (
-            <CouponCard key={coupon.id} coupon={coupon} />
-          ))}
-        </div>
+        {featuredCoupons.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredCoupons.map((coupon) => (
+              <CouponCard key={coupon.id} coupon={coupon} />
+            ))}
+          </div>
+        ) : (
+          <Card className="glass-dark border-white/10 p-12 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <Trophy className="h-16 w-16 text-foreground/30" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Henüz Kupon Yok</h3>
+                <p className="text-foreground/60">
+                  İlk kuponu paylaşan sen ol! Giriş yap ve kuponunu paylaş.
+                </p>
+              </div>
+              <Link href="/giris">
+                <Button className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold btn-premium">
+                  Giriş Yap
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
       </section>
 
       {/* Top Predictors */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-500/5 to-transparent"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-3">
-              <Crown className="h-8 w-8 text-yellow-400" />
-              <h2 className="text-3xl font-bold gradient-text">En Başarılı Tahmincilar</h2>
-            </div>
-            <Link href="/tahmincilar">
-              <Button variant="ghost" className="hover:text-green-400 hover:bg-white/5">
-                Tümünü Gör <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+      <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-transparent via-green-500/5 to-transparent">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-3">
+            <Crown className="h-8 w-8 text-yellow-400 animate-pulse" />
+            <h2 className="text-3xl font-bold gradient-text">En Başarılı Tahmincilar</h2>
           </div>
+          <Link href="/tahmincilar">
+            <Button variant="ghost" className="hover:text-green-400 hover:bg-white/5">
+              Tümünü Gör <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
 
+        {topPredictors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {topPredictors.map((predictor, index) => (
-              <Card key={predictor.username} className="glass-dark border-white/5 card-premium">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-3">
-                    <Avatar className="h-14 w-14 ring-2 ring-yellow-400/20">
-                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-black font-bold text-lg">
-                        {predictor.username.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {index < 3 && (
-                      <Badge className={`${
-                        index === 0 ? 'bg-yellow-400 text-black' :
-                        index === 1 ? 'bg-gray-400 text-black' :
-                        'bg-orange-600 text-white'
-                      } font-bold`}>
-                        #{index + 1}
-                      </Badge>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg">{predictor.username}</p>
-                    <p className="text-xs text-foreground/60">{predictor.followers} takipçi</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="glass p-3 rounded-lg border border-white/5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-foreground/70">Başarı Oranı</span>
-                      <span className="font-bold text-xl text-green-400">%{predictor.winRate}</span>
+              <Link key={predictor.id} href={`/profil/${predictor.username}`}>
+                <Card className="glass-dark border-white/10 hover:border-green-500/50 transition-all duration-300 group cursor-pointer relative overflow-hidden">
+                  {index === 0 && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <Crown className="h-6 w-6 text-yellow-400 animate-pulse" />
                     </div>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-foreground/70">Toplam Kupon</span>
-                    <span className="font-semibold">{predictor.totalCoupons}</span>
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium">
-                    Takip Et
-                  </Button>
-                </CardContent>
-              </Card>
+                  )}
+                  <CardHeader className="text-center pb-4">
+                    <div className="relative inline-block mx-auto mb-4">
+                      <Avatar className="h-20 w-20 border-4 border-green-500/50 group-hover:border-yellow-400/50 transition-all">
+                        <AvatarImage src={predictor.avatar || ''} alt={predictor.name} />
+                        <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-green-500 to-yellow-400 text-black">
+                          {predictor.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+                        <Badge className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-bold border-0">
+                          #{index + 1}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardTitle className="text-lg">{predictor.name}</CardTitle>
+                    <p className="text-sm text-foreground/60">@{predictor.username}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 glass rounded-lg">
+                      <span className="text-sm text-foreground/70">Başarı Oranı</span>
+                      <span className="text-lg font-bold text-green-400">{predictor.winRate}%</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 glass rounded-lg">
+                      <span className="text-sm text-foreground/70">Toplam Kupon</span>
+                      <span className="text-lg font-bold">{predictor.totalCoupons}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 glass rounded-lg">
+                      <span className="text-sm text-foreground/70">Takipçi</span>
+                      <span className="text-lg font-bold text-yellow-400">{predictor.followers}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </div>
+        ) : (
+          <Card className="glass-dark border-white/10 p-12 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <Crown className="h-16 w-16 text-foreground/30" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Henüz Tahminçi Yok</h3>
+                <p className="text-foreground/60">
+                  Kayıt ol, kupon paylaş ve sen de tahminçi ol!
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
       </section>
 
-      {/* Features Section */}
+      {/* Stats Section */}
       <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 gradient-text">Neden İddaaSohbet?</h2>
-          <p className="text-foreground/70 max-w-2xl mx-auto">
-            Profesyonel betting platformunda yerinizi alın
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="glass-dark border-white/5 card-premium">
-            <CardHeader>
-              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center mb-4 border border-green-500/20">
-                <BarChart3 className="h-7 w-7 text-green-400" />
+          <Card className="glass-dark border-white/10 hover:border-green-500/30 transition-all group">
+            <CardContent className="p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4 group-hover:bg-green-500/20 transition-all">
+                <Zap className="h-8 w-8 text-green-400" />
               </div>
-              <CardTitle className="text-xl">Detaylı İstatistikler</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70">
-                Her kullanıcının başarı oranı, kazanç grafiği ve detaylı performans analizleri
+              <h3 className="text-3xl font-bold mb-2 gradient-text">Hızlı & Güvenli</h3>
+              <p className="text-foreground/60">
+                Kuponlarınızı anında paylaşın, diğer kullanıcıların kuponlarını inceleyin
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-dark border-white/5 card-premium">
-            <CardHeader>
-              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-yellow-400/20 to-yellow-400/5 flex items-center justify-center mb-4 border border-yellow-400/20">
-                <Zap className="h-7 w-7 text-yellow-400" />
+          <Card className="glass-dark border-white/10 hover:border-yellow-400/30 transition-all group">
+            <CardContent className="p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-400/10 mb-4 group-hover:bg-yellow-400/20 transition-all">
+                <Shield className="h-8 w-8 text-yellow-400" />
               </div>
-              <CardTitle className="text-xl">Canlı Takip</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70">
-                Kuponları gerçek zamanlı takip edin, anlık bildirimler alın
+              <h3 className="text-3xl font-bold mb-2 gradient-text">%100 Ücretsiz</h3>
+              <p className="text-foreground/60">
+                Tüm özellikler tamamen ücretsiz. Gizli ücret yok, abonelik yok
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-dark border-white/5 card-premium">
-            <CardHeader>
-              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-4 border border-purple-500/20">
-                <Shield className="h-7 w-7 text-purple-400" />
+          <Card className="glass-dark border-white/10 hover:border-green-500/30 transition-all group">
+            <CardContent className="p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4 group-hover:bg-green-500/20 transition-all">
+                <BarChart3 className="h-8 w-8 text-green-400" />
               </div>
-              <CardTitle className="text-xl">Güvenli Platform</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70">
-                Doğrulanmış kullanıcılar, şeffaf istatistikler ve güvenilir ortam
+              <h3 className="text-3xl font-bold mb-2 gradient-text">Detaylı İstatistikler</h3>
+              <p className="text-foreground/60">
+                Başarı oranlarını takip edin, en iyi tahminçileri keşfedin
               </p>
             </CardContent>
           </Card>
@@ -221,33 +253,29 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden py-20 my-20">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-yellow-400/10 to-green-500/10"></div>
-        <div className="absolute inset-0 grid-pattern"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="max-w-3xl mx-auto glass-dark p-12 rounded-3xl border border-white/10">
-            <Zap className="h-16 w-16 text-yellow-400 mx-auto mb-6 animate-pulse" />
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="gradient-text">Hemen Başla,</span> İlk Kuponunu Paylaş!
-            </h2>
-            <p className="text-xl text-foreground/70 mb-8 max-w-2xl mx-auto">
-              Ücretsiz üye ol, kuponlarını paylaş ve kazananlar liginde yerinizi alın
+      <section className="container mx-auto px-4 py-16">
+        <Card className="glass-dark border-white/10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-yellow-400/10"></div>
+          <CardContent className="p-12 text-center relative z-10">
+            <Award className="h-16 w-16 text-green-400 mx-auto mb-6 animate-pulse" />
+            <h2 className="text-4xl font-bold mb-4 gradient-text">Hemen Başla!</h2>
+            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
+              Türkiye'nin en aktif iddaa kupon paylaşım topluluğuna katıl. Ücretsiz kayıt ol, kuponlarını paylaş ve kazananlar arasına katıl!
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex items-center justify-center space-x-4">
               <Link href="/kayit">
-                <Button size="lg" className="text-lg h-14 px-8 bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium neon-green">
+                <Button size="lg" className="h-14 px-8 text-lg bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium">
                   Ücretsiz Kayıt Ol
-                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/kuponlar">
-                <Button size="lg" variant="outline" className="text-lg h-14 px-8 border-white/20 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400">
-                  Kuponları Keşfet
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/20 hover:border-green-500/50 hover:bg-green-500/10">
+                  Kuponları İncele
                 </Button>
               </Link>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   )
