@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,7 +27,7 @@ import {
 
 export default function AdminKuponlarPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'PENDING' | 'WON' | 'LOST'>('all')
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([])
   
   // Modal states
@@ -46,69 +46,69 @@ export default function AdminKuponlarPage() {
     matches: [{ team1: '', team2: '', pick: '', odd: '1.00' }]
   })
 
-  // Mock data
-  const stats = [
-    { label: 'Toplam Kupon', value: '12,458', icon: FileText, color: 'blue' },
-    { label: 'Bekleyen', value: '234', icon: Clock, color: 'yellow' },
-    { label: 'Kazanan', value: '4,892', icon: CheckCircle, color: 'green' },
-    { label: 'Kaybeden', value: '7,332', icon: XCircle, color: 'red' }
-  ]
-
-  const [coupons, setCoupons] = useState([
-    {
-      id: '1',
-      user: 'Mehmet Yılmaz',
-      username: '@mehmetY',
-      title: 'Bugünün En İyi 5\'lisi - Yüksek Oranlı Kupon 🔥',
-      matches: 5,
-      totalOdds: 12.45,
-      stake: 100,
-      potentialWin: 1245,
-      status: 'pending',
-      date: '2025-01-10 14:30',
-      views: 1234,
-      likes: 89,
-      comments: 12
-    },
-    {
-      id: '2',
-      user: 'Ahmet Kaya',
-      username: '@ahmetK',
-      title: 'Garantili 3\'lü Maç',
-      matches: 3,
-      totalOdds: 3.20,
-      stake: 200,
-      potentialWin: 640,
-      status: 'won',
-      date: '2025-01-10 12:15',
-      views: 2341,
-      likes: 156,
-      comments: 34
-    },
-    {
-      id: '3',
-      user: 'Fatih Şahin',
-      username: '@fatihS',
-      title: 'Yüksek Oran Kuponu',
-      matches: 8,
-      totalOdds: 156.30,
-      stake: 50,
-      potentialWin: 7815,
-      status: 'lost',
-      date: '2025-01-10 10:00',
-      views: 892,
-      likes: 45,
-      comments: 8
-    }
+  // Live state
+  const [coupons, setCoupons] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [limit] = useState(20)
+  const [stats, setStats] = useState([
+    { label: 'Toplam Kupon', value: '0', icon: FileText, color: 'blue' },
+    { label: 'Bekleyen', value: '0', icon: Clock, color: 'yellow' },
+    { label: 'Kazanan', value: '0', icon: CheckCircle, color: 'green' },
+    { label: 'Kaybeden', value: '0', icon: XCircle, color: 'red' }
   ])
+
+  const loadStats = async () => {
+    try {
+      const base = `/api/kuponlar?limit=1`
+      const [allRes, pRes, wRes, lRes] = await Promise.all([
+        fetch(`${base}`),
+        fetch(`${base}&status=PENDING`),
+        fetch(`${base}&status=WON`),
+        fetch(`${base}&status=LOST`)
+      ])
+      const [all, p, w, l] = await Promise.all([allRes.json(), pRes.json(), wRes.json(), lRes.json()])
+      setStats([
+        { label: 'Toplam Kupon', value: String(all.pagination?.total || 0), icon: FileText, color: 'blue' },
+        { label: 'Bekleyen', value: String(p.pagination?.total || 0), icon: Clock, color: 'yellow' },
+        { label: 'Kazanan', value: String(w.pagination?.total || 0), icon: CheckCircle, color: 'green' },
+        { label: 'Kaybeden', value: String(l.pagination?.total || 0), icon: XCircle, color: 'red' }
+      ])
+    } catch {}
+  }
+
+  const loadCoupons = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (filterStatus !== 'all') params.set('status', filterStatus)
+      const res = await fetch(`/api/kuponlar?${params.toString()}`, { cache: 'no-store' })
+      const data = await res.json()
+      setCoupons(data.coupons || [])
+      setTotal(data.pagination?.total || 0)
+    } catch (e) {
+      setCoupons([])
+      setTotal(0)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadCoupons()
+    loadStats()
+  }, [page, filterStatus])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'won':
+      case 'WON':
         return <Badge className="bg-green-500/20 border-green-500/30 text-green-400"><CheckCircle className="h-3 w-3 mr-1" />Kazandı</Badge>
-      case 'lost':
+      case 'LOST':
         return <Badge className="bg-red-500/20 border-red-500/30 text-red-400"><XCircle className="h-3 w-3 mr-1" />Kaybetti</Badge>
-      case 'pending':
+      case 'PENDING':
         return <Badge className="bg-yellow-500/20 border-yellow-500/30 text-yellow-400"><Clock className="h-3 w-3 mr-1" />Bekliyor</Badge>
       default:
         return null
@@ -130,44 +130,51 @@ export default function AdminKuponlarPage() {
   }
 
   // Add Coupon
-  const handleAddCoupon = () => {
-    const newCoupon = {
-      id: String(coupons.length + 1),
-      user: 'Admin',
-      username: '@admin',
+  const handleAddCoupon = async () => {
+    const body = {
       title: formData.title,
-      matches: formData.matches.length,
-      totalOdds: parseFloat(formData.totalOdds),
-      stake: parseFloat(formData.stake),
-      potentialWin: parseFloat(formData.totalOdds) * parseFloat(formData.stake),
-      status: formData.status,
-      date: new Date().toLocaleString('tr-TR'),
-      views: 0,
-      likes: 0,
-      comments: 0
+      description: '',
+      stake: formData.stake,
+      totalOdds: formData.totalOdds,
+      potentialWin: (parseFloat(formData.totalOdds || '0') * parseFloat(formData.stake || '0')).toFixed(2),
+      matches: formData.matches.map(m => ({ team1: m.team1, team2: m.team2, pick: m.pick, odd: m.odd }))
     }
-    setCoupons([newCoupon, ...coupons])
-    setShowAddModal(false)
-    resetForm()
+    const res = await fetch('/api/kuponlar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (res.ok) {
+      setShowAddModal(false)
+      resetForm()
+      await loadCoupons()
+      await loadStats()
+    }
   }
 
   // Edit Coupon
-  const handleEditCoupon = () => {
-    setCoupons(coupons.map(c => 
-      c.id === selectedCoupon.id 
-        ? { ...c, ...formData, totalOdds: parseFloat(formData.totalOdds), stake: parseFloat(formData.stake) }
-        : c
-    ))
+  const handleEditCoupon = async () => {
+    if (!selectedCoupon) return
+    const body: any = {
+      title: formData.title,
+      status: filterStatus === 'all' ? undefined : filterStatus,
+      stake: formData.stake,
+      totalOdds: formData.totalOdds,
+      potentialWin: (parseFloat(formData.totalOdds || '0') * parseFloat(formData.stake || '0')).toFixed(2),
+      matches: formData.matches
+    }
+    await fetch(`/api/kuponlar/${selectedCoupon.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     setShowEditModal(false)
     setSelectedCoupon(null)
     resetForm()
+    await loadCoupons()
+    await loadStats()
   }
 
   // Delete Coupon
-  const handleDeleteCoupon = () => {
-    setCoupons(coupons.filter(c => c.id !== selectedCoupon.id))
+  const handleDeleteCoupon = async () => {
+    if (!selectedCoupon) return
+    await fetch(`/api/kuponlar/${selectedCoupon.id}`, { method: 'DELETE' })
     setShowDeleteModal(false)
     setSelectedCoupon(null)
+    await loadCoupons()
+    await loadStats()
   }
 
   // Bulk Delete
@@ -315,13 +322,13 @@ export default function AdminKuponlarPage() {
               <Filter className="h-4 w-4 text-foreground/60" />
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={(e) => setFilterStatus(e.target.value as any)}
                 className="glass-dark border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-orange-500/50 min-w-[150px]"
               >
                 <option value="all">Tüm Durumlar</option>
-                <option value="pending">Bekleyen</option>
-                <option value="won">Kazanan</option>
-                <option value="lost">Kaybeden</option>
+                <option value="PENDING">Bekleyen</option>
+                <option value="WON">Kazanan</option>
+                <option value="LOST">Kaybeden</option>
               </select>
             </div>
           </div>
@@ -336,7 +343,7 @@ export default function AdminKuponlarPage() {
                   size="sm" 
                   variant="outline" 
                   className="glass border-green-500/30 text-green-400 hover:bg-green-500/10"
-                  onClick={() => handleBulkStatusUpdate('won')}
+                  onClick={() => handleBulkStatusUpdate('WON')}
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Kazandı İşaretle
@@ -413,11 +420,11 @@ export default function AdminKuponlarPage() {
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                          {coupon.user.charAt(0)}
+                          {coupon.user?.username?.substring(0,1).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-semibold text-sm">{coupon.user}</p>
-                          <p className="text-xs text-foreground/60">{coupon.username}</p>
+                          <p className="font-semibold text-sm">{coupon.user?.username}</p>
+                          <p className="text-xs text-foreground/60">{coupon.user?.name}</p>
                         </div>
                       </div>
                     </td>
@@ -427,7 +434,7 @@ export default function AdminKuponlarPage() {
                     <td className="p-4">
                       <div className="flex flex-col space-y-1">
                         <Badge className="glass border-blue-500/30 text-blue-400 w-fit">
-                          {coupon.matches} Maç
+                          {coupon.matches?.length || 0} Maç
                         </Badge>
                         <span className="text-sm font-bold text-orange-400">{coupon.totalOdds}</span>
                       </div>
@@ -441,12 +448,8 @@ export default function AdminKuponlarPage() {
                     <td className="p-4">
                       <div className="flex flex-col space-y-1 text-xs text-foreground/60">
                         <div className="flex items-center space-x-1">
-                          <Eye className="h-3 w-3" />
-                          <span>{coupon.views}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
                           <Users className="h-3 w-3" />
-                          <span>{coupon.likes}/{coupon.comments}</span>
+                          <span>{coupon._count?.likes}/{coupon._count?.comments}</span>
                         </div>
                       </div>
                     </td>
@@ -454,7 +457,7 @@ export default function AdminKuponlarPage() {
                       {getStatusBadge(coupon.status)}
                     </td>
                     <td className="p-4">
-                      <span className="text-xs text-foreground/60">{coupon.date}</span>
+                      <span className="text-xs text-foreground/60">{new Date(coupon.createdAt).toLocaleString('tr-TR')}</span>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end space-x-2">
