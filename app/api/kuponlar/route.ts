@@ -141,8 +141,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(coupon, { status: 201 })
   } catch (error) {
     console.error('Kupon oluşturulurken hata:', error)
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
     return NextResponse.json(
-      { error: (error as any)?.message || 'Kupon oluşturulamadı' },
+      { 
+        error: (error as any)?.message || 'Kupon oluşturulamadı',
+        details: String(error),
+        stack: (error as any)?.stack
+      },
       { status: 500 }
     )
   }
