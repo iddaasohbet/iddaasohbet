@@ -17,7 +17,7 @@ import {
   Crown
 } from 'lucide-react'
 import CouponCard from '@/components/CouponCard'
-import prisma from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
 interface Props {
