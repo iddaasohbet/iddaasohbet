@@ -98,10 +98,35 @@ export async function POST(request: NextRequest) {
       ? Number.parseFloat(String(potentialWin))
       : Number.parseFloat((totalOddsNumber * (Number.isFinite(stakeNumber) ? stakeNumber : 0)).toFixed(2))
 
-    // Kupon oluştur
-    const fallbackUser = !session?.user
-      ? await prisma.user.findFirst({ select: { id: true }, orderBy: { createdAt: 'asc' } })
-      : null
+    // Kupon oluştur - userId kesin olmalı
+    let userId = session?.user?.id
+    
+    if (!userId) {
+      // Session yoksa, ilk admin kullanıcıyı bul
+      const adminUser = await prisma.user.findFirst({ 
+        where: { role: 'ADMIN' },
+        select: { id: true } 
+      })
+      
+      if (!adminUser) {
+        // Admin yoksa, herhangi bir kullanıcı
+        const anyUser = await prisma.user.findFirst({ 
+          select: { id: true },
+          orderBy: { createdAt: 'asc' }
+        })
+        userId = anyUser?.id
+      } else {
+        userId = adminUser.id
+      }
+    }
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Sistemde hiç kullanıcı yok. Önce bir kullanıcı oluşturun.' },
+        { status: 400 }
+      )
+    }
+    
     const coupon = await prisma.coupon.create({
       data: {
         title: defaultTitle,
@@ -110,7 +135,7 @@ export async function POST(request: NextRequest) {
         totalOdds: totalOddsNumber,
         potentialWin: Number.isFinite(potentialWinNumber) ? potentialWinNumber : 0,
         status: 'PENDING',
-        userId: session?.user?.id || fallbackUser?.id || undefined as any,
+        userId: userId,
         ...(sanitizedMatches.length > 0 && {
           matches: {
             create: sanitizedMatches.map((m: any) => ({
