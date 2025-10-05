@@ -22,8 +22,11 @@ import {
   Check
 } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function HesapAyarlariPage() {
-  const { data: session, update } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
   
   const [loading, setLoading] = useState(false)
@@ -36,7 +39,7 @@ export default function HesapAyarlariPage() {
     username: session?.user?.username || '',
     email: session?.user?.email || '',
     bio: '',
-    avatar: session?.user?.image || ''
+    avatar: (session as any)?.user?.image || ''
   })
 
   // Şifre değiştirme
@@ -153,8 +156,12 @@ export default function HesapAyarlariPage() {
     }
   }
 
-  if (!session) {
+  // Redirect only on client after status resolves to avoid SSR "location is not defined"
+  if (typeof window !== 'undefined' && status === 'unauthenticated') {
     router.push('/giris')
+    return null
+  }
+  if (status === 'loading') {
     return null
   }
 
@@ -351,7 +358,7 @@ export default function HesapAyarlariPage() {
                     <div className="flex items-center space-x-3">
                       <Mail className="h-5 w-5 text-green-400" />
                       <div>
-                        <p className="font-semibold">{session.user?.email}</p>
+                        <p className="font-semibold">{session?.user?.email ?? ''}</p>
                         <p className="text-xs text-foreground/60">Mevcut e-posta adresiniz</p>
                       </div>
                     </div>
