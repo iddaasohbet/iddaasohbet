@@ -37,7 +37,7 @@ async function getUserProfile(username: string) {
       include: {
         coupons: {
           include: {
-            author: {
+            user: {
               select: {
                 username: true,
                 name: true,
@@ -61,7 +61,7 @@ async function getUserProfile(username: string) {
           include: {
             coupon: {
               include: {
-                author: {
+                user: {
                   select: {
                     username: true,
                     name: true,
@@ -87,7 +87,7 @@ async function getUserProfile(username: string) {
           include: {
             coupon: {
               include: {
-                author: {
+                user: {
                   select: {
                     username: true,
                     name: true,
@@ -291,7 +291,7 @@ export default async function ProfilPage({ params }: Props) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {user.coupons.map((coupon) => (
-                  <CouponCard key={coupon.id} coupon={coupon} />
+                  <CouponCard key={coupon.id} coupon={{ ...coupon, author: (coupon as any).user }} />
                 ))}
               </div>
             )}
@@ -312,7 +312,7 @@ export default async function ProfilPage({ params }: Props) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {user.likes.map((like) => (
-                  <CouponCard key={like.couponId} coupon={like.coupon} />
+                  <CouponCard key={like.couponId} coupon={{ ...like.coupon, author: (like.coupon as any).user }} />
                 ))}
               </div>
             )}
@@ -338,7 +338,7 @@ export default async function ProfilPage({ params }: Props) {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <p className="text-sm text-foreground/60 mb-1">
-                            <span className="font-semibold text-green-400">@{comment.coupon.author.username}</span> kullanıcısının kuponuna yorum:
+                            <span className="font-semibold text-green-400">@{(comment.coupon as any).user.username}</span> kullanıcısının kuponuna yorum:
                           </p>
                           <p className="text-sm text-foreground/50">
                             {new Date(comment.createdAt).toLocaleDateString('tr-TR', { 
