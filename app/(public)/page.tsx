@@ -86,6 +86,9 @@ async function getTopPredictors() {
   }
 }
 
+// Revalidate her 10 saniyede bir
+export const revalidate = 10
+
 export default async function Home() {
   const [featuredCoupons, topPredictors] = await Promise.all([
     getFeaturedCoupons(),
