@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import prisma from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 // Kullanıcının mevcut başvurusunu kontrol et
 export async function GET() {

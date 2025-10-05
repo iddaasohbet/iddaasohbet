@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import prisma from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/lib/auth'
 
 export async function PUT(request: Request) {
