@@ -36,7 +36,8 @@ interface Coupon {
   totalOdds: number
   status: string
   createdAt: Date
-  author: Author
+  user: Author | null
+  author?: Author | null
   matches: Match[]
   _count: {
     likes: number
@@ -81,17 +82,17 @@ export default function CouponCard({ coupon }: Props) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8 ring-2 ring-white/10">
-                <AvatarImage src={coupon.author.avatar || ''} alt={coupon.author.name || ''} />
+                <AvatarImage src={coupon.user?.avatar || undefined} alt={coupon.user?.name || 'User'} />
                 <AvatarFallback className="bg-gradient-to-br from-green-500 to-yellow-400 text-black text-xs font-bold">
-                  {coupon.author.username.substring(0, 2).toUpperCase()}
+                  {coupon.user?.username.substring(0, 2).toUpperCase() || 'UU'}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center space-x-1">
                   <p className="text-sm font-semibold text-foreground group-hover:text-green-400 transition-colors">
-                    {coupon.author.username}
+                    {coupon.user?.username || 'user'}
                   </p>
-                  {coupon.author.verified && (
+                  {coupon.user?.verified && (
                     <Award className="h-3 w-3 text-blue-400" />
                   )}
                 </div>
