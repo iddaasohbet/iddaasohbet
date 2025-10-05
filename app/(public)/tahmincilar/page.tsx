@@ -237,7 +237,6 @@ export default async function TahmincilerPage() {
           ))}
         </div>
               )}
-            )}
 
             {/* Rest of Predictors */}
             {topPredictors.length > 3 && (
@@ -301,7 +300,6 @@ export default async function TahmincilerPage() {
           </div>
         </div>
               )}
-            )}
 
             {/* Load More */}
             {topPredictors.length > 10 && (
