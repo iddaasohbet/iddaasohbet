@@ -1,5 +1,5 @@
 import Hero from '@/components/Hero'
-import CouponCard from '@/components/CouponCard'
+import FeaturedCoupons from '@/components/FeaturedCoupons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -95,33 +95,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        {featuredCoupons.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCoupons.map((coupon: any) => (
-              <CouponCard key={coupon.id} coupon={{
-                ...coupon,
-                user: coupon.user ? { ...coupon.user, verified: (coupon as any).user?.verified ?? false } : null,
-              }} />
-            ))}
-          </div>
-        ) : (
-          <Card className="glass-dark border-white/10 p-12 text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <Trophy className="h-16 w-16 text-foreground/30" />
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Henüz Kupon Yok</h3>
-                <p className="text-foreground/60">
-                  İlk kuponu paylaşan sen ol! Giriş yap ve kuponunu paylaş.
-                </p>
-              </div>
-              <Link href="/giris">
-                <Button className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold btn-premium">
-                  Giriş Yap
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        )}
+        <FeaturedCoupons />
       </section>
 
       {/* Top Predictors */}
