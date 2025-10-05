@@ -167,9 +167,9 @@ export default async function Home() {
                   <CardHeader className="text-center pb-4">
                     <div className="relative inline-block mx-auto mb-4">
                       <Avatar className="h-20 w-20 border-4 border-green-500/50 group-hover:border-yellow-400/50 transition-all">
-                        <AvatarImage src={predictor.avatar || ''} alt={predictor.name} />
+                        <AvatarImage src={predictor.avatar || undefined} alt={predictor.name || 'User'} />
                         <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-green-500 to-yellow-400 text-black">
-                          {predictor.name.charAt(0).toUpperCase()}
+                          {(predictor.name || 'U').charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
