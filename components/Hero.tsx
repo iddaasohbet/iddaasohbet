@@ -1,17 +1,16 @@
 import { Button } from '@/components/ui/button'
 import { Trophy, TrendingUp, Users, Zap, ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { prisma } from '@/lib/db'
 
 export default async function Hero() {
-  // Load latest coupon to display on the right card
-  let latestCoupon: any | null = null
-  try {
-    const res = await fetch(`/api/kuponlar?limit=1`, { cache: 'no-store' })
-    if (res.ok) {
-      const data = await res.json()
-      latestCoupon = (data?.coupons && data.coupons[0]) || null
-    }
-  } catch {}
+  // Server-side: fetch last coupon directly from DB for reliability
+  const latestCoupon = await prisma.coupon.findFirst({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      matches: true,
+    },
+  })
   return (
     <section className="relative overflow-hidden py-20 md:py-32 grid-pattern">
       {/* Animated Background Elements */}
@@ -102,7 +101,6 @@ export default async function Hero() {
               
               {latestCoupon ? (
                 <>
-                  {/* Matches from latest coupon */}
                   <div className="space-y-3 mb-6">
                     {(latestCoupon.matches || []).slice(0, 3).map((m: any, idx: number) => (
                       <div key={m.id || idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all">
@@ -120,18 +118,16 @@ export default async function Hero() {
                     ))}
                   </div>
 
-                  {/* Total */}
                   <div className="glass-dark p-4 rounded-xl border border-green-500/20">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-foreground/70">Toplam Oran</span>
                       <div className="flex items-center space-x-2">
                         <Trophy className="h-5 w-5 text-yellow-400" />
-                        <span className="text-4xl font-bold gradient-text neon-text-green">{Number(latestCoupon.totalOdds || 1).toFixed(2)}</span>
+                        <span className="text-4xl font-bold gradient-text neon-text-green">{Number((latestCoupon as any).totalOdds || 1).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Action */}
                   <Link href={`/kupon/${latestCoupon.id}`}>
                     <Button className="w-full mt-6 bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold h-12 btn-premium">
                       Kuponu Görüntüle
@@ -140,26 +136,14 @@ export default async function Hero() {
                   </Link>
                 </>
               ) : (
-                <>
-                  {/* Placeholder if no coupon exists */}
-                  <div className="space-y-3 mb-6">
-                    {[...Array(3)].map((_, idx) => (
-                      <div key={idx} className="glass p-4 rounded-xl border border-white/5 animate-pulse">
-                        <div className="h-6 bg-white/5 rounded w-2/3 mb-2"></div>
-                        <div className="h-4 bg-white/5 rounded w-1/3"></div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="glass-dark p-4 rounded-xl border border-green-500/20">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-foreground/70">Toplam Oran</span>
-                      <div className="flex items-center space-x-2">
-                        <Trophy className="h-5 w-5 text-yellow-400" />
-                        <span className="text-4xl font-bold gradient-text neon-text-green">-</span>
-                      </div>
+                <div className="space-y-3 mb-6">
+                  {[...Array(3)].map((_, idx) => (
+                    <div key={idx} className="glass p-4 rounded-xl border border-white/5 animate-pulse">
+                      <div className="h-6 bg-white/5 rounded w-2/3 mb-2"></div>
+                      <div className="h-4 bg-white/5 rounded w-1/3"></div>
                     </div>
-                  </div>
-                </>
+                  ))}
+                </div>
               )}
             </div>
           </div>
