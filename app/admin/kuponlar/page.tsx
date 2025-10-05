@@ -45,6 +45,7 @@ export default function AdminKuponlarPage() {
     status: 'pending',
     matches: [{ team1: '', team2: '', pick: '', odd: '1.00' }]
   })
+  const [submitting, setSubmitting] = useState(false)
 
   // Live state
   const [coupons, setCoupons] = useState<any[]>([])
@@ -131,6 +132,7 @@ export default function AdminKuponlarPage() {
 
   // Add Coupon
   const handleAddCoupon = async () => {
+    setSubmitting(true)
     const body = {
       title: formData.title,
       description: '',
@@ -139,12 +141,25 @@ export default function AdminKuponlarPage() {
       potentialWin: (parseFloat(formData.totalOdds || '0') * parseFloat(formData.stake || '0')).toFixed(2),
       matches: formData.matches.map(m => ({ team1: m.team1, team2: m.team2, pick: m.pick, odd: m.odd }))
     }
-    const res = await fetch('/api/kuponlar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    if (res.ok) {
+    try {
+      const res = await fetch('/api/kuponlar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'Kupon oluşturulamadı')
+        return
+      }
       setShowAddModal(false)
       resetForm()
       await loadCoupons()
       await loadStats()
+    } catch (e) {
+      alert('Ağ hatası: Kupon oluşturulamadı')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -253,11 +268,15 @@ export default function AdminKuponlarPage() {
       const odd = parseFloat(match.odd) || 1
       return acc * odd
     }, 1)
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       totalOdds: total.toFixed(2)
-    })
+    }))
   }
+
+  useEffect(() => {
+    calculateTotalOdds()
+  }, [formData.matches])
 
   return (
     <div className="space-y-6">
@@ -673,10 +692,10 @@ export default function AdminKuponlarPage() {
                 <Button 
                   onClick={handleAddCoupon}
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                  disabled={!formData.title || !formData.totalOdds || !formData.stake}
+                  disabled={submitting || !formData.title || !formData.totalOdds || !formData.stake}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Kupon Ekle
+                  {submitting ? 'Gönderiliyor...' : 'Kupon Ekle'}
                 </Button>
                 <Button variant="outline" className="glass border-white/10" onClick={() => setShowAddModal(false)}>
                   İptal
