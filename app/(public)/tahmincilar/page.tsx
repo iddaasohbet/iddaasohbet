@@ -18,139 +18,24 @@ import {
   Zap
 } from 'lucide-react'
 
-// Demo data - En başarılı tahmincieler
-const topPredictors = [
-  {
-    id: '1',
-    username: 'tahminpro',
-    name: 'Ahmet Yılmaz',
-    avatar: null,
-    bio: 'Profesyonel analist - 5 yıllık tecrübe. Futbol ve basketbol uzmanı.',
-    winRate: 85,
-    totalCoupons: 248,
-    wonCoupons: 211,
-    lostCoupons: 37,
-    pendingCoupons: 12,
-    totalProfit: 145250,
-    followers: 3420,
-    verified: true,
-    rank: 1
-  },
-  {
-    id: '2',
-    username: 'bankercim',
-    name: 'Mehmet Kaya',
-    avatar: null,
-    bio: 'Banker kuponlar ve düşük riskli stratejiler. Güvenilir tahminler.',
-    winRate: 82,
-    totalCoupons: 312,
-    wonCoupons: 256,
-    lostCoupons: 56,
-    pendingCoupons: 8,
-    totalProfit: 98750,
-    followers: 2890,
-    verified: true,
-    rank: 2
-  },
-  {
-    id: '3',
-    username: 'premiermaster',
-    name: 'Ali Demir',
-    avatar: null,
-    bio: 'Premier League ve La Liga uzmanı. İspanya ve İngiltere liglerinde yüksek başarı.',
-    winRate: 78,
-    totalCoupons: 195,
-    wonCoupons: 152,
-    lostCoupons: 43,
-    pendingCoupons: 15,
-    totalProfit: 87400,
-    followers: 2340,
-    verified: true,
-    rank: 3
-  },
-  {
-    id: '4',
-    username: 'iddaaaslan',
-    name: 'Can Öztürk',
-    avatar: null,
-    bio: 'Alt-üst stratejileri ve kombine kuponlar. Yüksek oran uzmanı.',
-    winRate: 76,
-    totalCoupons: 167,
-    wonCoupons: 127,
-    lostCoupons: 40,
-    pendingCoupons: 6,
-    totalProfit: 76200,
-    followers: 1980,
-    verified: false,
-    rank: 4
-  },
-  {
-    id: '5',
-    username: 'golmaster',
-    name: 'Emre Şahin',
-    avatar: null,
-    bio: 'Gol tahminleri ve karşılıklı gol stratejileri. Yüksek oranlı kuponlar.',
-    winRate: 74,
-    totalCoupons: 203,
-    wonCoupons: 150,
-    lostCoupons: 53,
-    pendingCoupons: 9,
-    totalProfit: 65800,
-    followers: 1750,
-    verified: false,
-    rank: 5
-  },
-  {
-    id: '6',
-    username: 'betking',
-    name: 'Serkan Aydın',
-    avatar: null,
-    bio: 'Basketbol ve tenis uzmanı. NBA ve Euroleague tahminleri.',
-    winRate: 73,
-    totalCoupons: 189,
-    wonCoupons: 138,
-    lostCoupons: 51,
-    pendingCoupons: 11,
-    totalProfit: 58900,
-    followers: 1620,
-    verified: true,
-    rank: 6
-  },
-  {
-    id: '7',
-    username: 'analist42',
-    name: 'Burak Yıldız',
-    avatar: null,
-    bio: 'İstatistiksel analiz ve data-driven tahminler. Süper Lig uzmanı.',
-    winRate: 71,
-    totalCoupons: 156,
-    wonCoupons: 111,
-    lostCoupons: 45,
-    pendingCoupons: 5,
-    totalProfit: 52400,
-    followers: 1450,
-    verified: false,
-    rank: 7
-  },
-  {
-    id: '8',
-    username: 'futbolboss',
-    name: 'Murat Çelik',
-    avatar: null,
-    bio: 'Avrupa ligleri ve Şampiyonlar Ligi tahminleri. 3 yıllık tecrübe.',
-    winRate: 69,
-    totalCoupons: 178,
-    wonCoupons: 123,
-    lostCoupons: 55,
-    pendingCoupons: 7,
-    totalProfit: 48700,
-    followers: 1290,
-    verified: false,
-    rank: 8
-  },
-]
+async function getTahminciData() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'
+    const res = await fetch(`${baseUrl}/api/tahmincilar`, {
+      cache: 'no-store'
+    })
+    if (!res.ok) {
+      return { predictors: [], stats: { totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 } }
+    }
+    return await res.json()
+  } catch (error) {
+    console.error('Tahmincieler fetch error:', error)
+    return { predictors: [], stats: { totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 } }
+  }
+}
 
-export default function TahmincilerPage() {
+export default async function TahmincilerPage() {
+  const { predictors: topPredictors, stats } = await getTahminciData()
   return (
     <div className="min-h-screen py-8 relative">
       {/* Background Pattern */}
@@ -177,7 +62,7 @@ export default function TahmincilerPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-foreground/60 text-sm mb-1">Toplam Tahminçi</p>
-                  <p className="text-3xl font-bold gradient-text">1,247</p>
+                  <p className="text-3xl font-bold gradient-text">{stats.totalPredictors}</p>
                 </div>
                 <Users className="h-10 w-10 text-green-400" />
               </div>
@@ -189,7 +74,7 @@ export default function TahmincilerPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-foreground/60 text-sm mb-1">Ort. Başarı Oranı</p>
-                  <p className="text-3xl font-bold gradient-text">%71</p>
+                  <p className="text-3xl font-bold gradient-text">%{stats.avgWinRate}</p>
                 </div>
                 <TrendingUp className="h-10 w-10 text-yellow-400" />
               </div>
@@ -201,7 +86,11 @@ export default function TahmincilerPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-foreground/60 text-sm mb-1">Toplam Kupon</p>
-                  <p className="text-3xl font-bold gradient-text">52K+</p>
+                  <p className="text-3xl font-bold gradient-text">
+                    {stats.totalCoupons >= 1000 
+                      ? `${(stats.totalCoupons / 1000).toFixed(1)}K+` 
+                      : stats.totalCoupons}
+                  </p>
                 </div>
                 <Trophy className="h-10 w-10 text-orange-500" />
               </div>
@@ -213,7 +102,7 @@ export default function TahmincilerPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-foreground/60 text-sm mb-1">Aktif Tahminçi</p>
-                  <p className="text-3xl font-bold gradient-text">342</p>
+                  <p className="text-3xl font-bold gradient-text">{stats.activePredictors}</p>
                 </div>
                 <Flame className="h-10 w-10 text-red-500 animate-pulse" />
               </div>
@@ -252,9 +141,24 @@ export default function TahmincilerPage() {
           </div>
         </div>
 
-        {/* Top 3 Podium */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-          {topPredictors.slice(0, 3).map((predictor, index) => (
+        {/* Empty State */}
+        {topPredictors.length === 0 ? (
+          <div className="text-center py-16 animate-fadeInUp">
+            <Users className="h-20 w-20 mx-auto text-foreground/30 mb-4" />
+            <h3 className="text-2xl font-bold mb-2">Henüz Tahminçi Yok</h3>
+            <p className="text-foreground/60 mb-6">
+              İlk tahminçi olmak için kayıt ol ve kuponlarını paylaşmaya başla!
+            </p>
+            <Button className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium">
+              Hemen Kayıt Ol
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Top 3 Podium */}
+            {topPredictors.length >= 3 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+                {topPredictors.slice(0, 3).map((predictor, index) => (
             <Card 
               key={predictor.id} 
               className={`glass-dark border-white/10 card-premium relative overflow-hidden ${
@@ -332,16 +236,19 @@ export default function TahmincilerPage() {
             </Card>
           ))}
         </div>
+              )}
+            )}
 
-        {/* Rest of Predictors */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-            <BarChart3 className="h-6 w-6 text-green-400" />
-            <span>Diğer Başarılı Tahmincieler</span>
-          </h2>
+            {/* Rest of Predictors */}
+            {topPredictors.length > 3 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+                  <BarChart3 className="h-6 w-6 text-green-400" />
+                  <span>Diğer Başarılı Tahmincieler</span>
+                </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-            {topPredictors.slice(3).map((predictor) => (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
+                  {topPredictors.slice(3).map((predictor) => (
               <Card key={predictor.id} className="glass-dark border-white/5 card-premium">
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">
@@ -393,13 +300,19 @@ export default function TahmincilerPage() {
             ))}
           </div>
         </div>
+              )}
+            )}
 
-        {/* Load More */}
-        <div className="text-center animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
-          <Button size="lg" className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium px-12">
-            Daha Fazla Yükle
-          </Button>
-        </div>
+            {/* Load More */}
+            {topPredictors.length > 10 && (
+              <div className="text-center animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
+                <Button size="lg" className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold btn-premium px-12">
+                  Daha Fazla Yükle
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )

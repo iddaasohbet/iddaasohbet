@@ -192,3 +192,4 @@ Sorun yaşarsan:
 3. MySQL connection string'ini tekrar kontrol et
 
 **Başarılar! 🎊⚽🏆**
+

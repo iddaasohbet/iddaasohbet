@@ -18,35 +18,36 @@ import {
   CircleDot
 } from 'lucide-react'
 
-// Demo data
-const leagues = [
-  { name: 'Premier League', matches: 1245, winRate: 76, avgOdds: 2.8, icon: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { name: 'La Liga', matches: 1098, winRate: 73, avgOdds: 2.6, icon: '🇪🇸' },
-  { name: 'Süper Lig', matches: 892, winRate: 71, avgOdds: 2.4, icon: '🇹🇷' },
-  { name: 'Bundesliga', matches: 756, winRate: 69, avgOdds: 2.5, icon: '🇩🇪' },
-  { name: 'Serie A', matches: 654, winRate: 68, avgOdds: 2.7, icon: '🇮🇹' },
-  { name: 'NBA', matches: 543, winRate: 72, avgOdds: 1.9, icon: '🏀' }
-]
+async function getIstatistiklerData() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'
+    const res = await fetch(`${baseUrl}/api/istatistikler`, {
+      cache: 'no-store'
+    })
+    if (!res.ok) {
+      return { 
+        mainStats: { totalCoupons: 0, winRate: 0, totalProfit: 0, activeUsers: 0 },
+        dailyStats: [],
+        betTypes: [],
+        leagues: [],
+        liveStats: { activeNow: 0, todayWon: 0, highestOdds: '0.0' }
+      }
+    }
+    return await res.json()
+  } catch (error) {
+    console.error('İstatistikler fetch error:', error)
+    return { 
+      mainStats: { totalCoupons: 0, winRate: 0, totalProfit: 0, activeUsers: 0 },
+      dailyStats: [],
+      betTypes: [],
+      leagues: [],
+      liveStats: { activeNow: 0, todayWon: 0, highestOdds: '0.0' }
+    }
+  }
+}
 
-const betTypes = [
-  { type: 'Maç Sonucu', percentage: 45, count: 23450, color: 'from-green-500 to-green-600' },
-  { type: 'Alt/Üst', percentage: 28, count: 14560, color: 'from-blue-500 to-blue-600' },
-  { type: 'Karşılıklı Gol', percentage: 15, count: 7800, color: 'from-yellow-400 to-yellow-500' },
-  { type: 'Handikap', percentage: 8, count: 4160, color: 'from-purple-500 to-purple-600' },
-  { type: 'Diğer', percentage: 4, count: 2080, color: 'from-orange-500 to-orange-600' }
-]
-
-const dailyStats = [
-  { day: 'Pzt', coupons: 342, winRate: 75, profit: 12400 },
-  { day: 'Sal', coupons: 389, winRate: 71, profit: 15200 },
-  { day: 'Çar', coupons: 456, winRate: 78, profit: 18900 },
-  { day: 'Per', coupons: 412, winRate: 69, profit: 14300 },
-  { day: 'Cum', coupons: 501, winRate: 80, profit: 22100 },
-  { day: 'Cmt', coupons: 678, winRate: 73, profit: 24800 },
-  { day: 'Paz', coupons: 612, winRate: 76, profit: 21500 }
-]
-
-export default function IstatistiklerPage() {
+export default async function IstatistiklerPage() {
+  const { mainStats, dailyStats, betTypes, leagues, liveStats } = await getIstatistiklerData()
   return (
     <div className="min-h-screen py-8 relative">
       {/* Background Pattern */}
@@ -94,7 +95,7 @@ export default function IstatistiklerPage() {
                 <Badge className="status-won text-white text-xs">+12%</Badge>
               </div>
               <p className="text-foreground/60 text-sm mb-1">Toplam Kupon</p>
-              <p className="text-3xl font-bold gradient-text">52,847</p>
+              <p className="text-3xl font-bold gradient-text">{mainStats.totalCoupons.toLocaleString()}</p>
             </CardContent>
           </Card>
 
@@ -107,7 +108,7 @@ export default function IstatistiklerPage() {
                 <Badge className="status-won text-white text-xs">+5%</Badge>
               </div>
               <p className="text-foreground/60 text-sm mb-1">Başarı Oranı</p>
-              <p className="text-3xl font-bold text-green-400">%73.2</p>
+              <p className="text-3xl font-bold text-green-400">%{mainStats.winRate}</p>
             </CardContent>
           </Card>
 
@@ -120,7 +121,11 @@ export default function IstatistiklerPage() {
                 <Badge className="status-won text-white text-xs">+18%</Badge>
               </div>
               <p className="text-foreground/60 text-sm mb-1">Toplam Kazanç</p>
-              <p className="text-3xl font-bold text-yellow-400">₺2.4M</p>
+              <p className="text-3xl font-bold text-yellow-400">
+                ₺{mainStats.totalProfit >= 1000000 
+                  ? `${(mainStats.totalProfit / 1000000).toFixed(1)}M` 
+                  : `${(mainStats.totalProfit / 1000).toFixed(1)}K`}
+              </p>
             </CardContent>
           </Card>
 
@@ -133,7 +138,7 @@ export default function IstatistiklerPage() {
                 <Badge className="status-won text-white text-xs">+23%</Badge>
               </div>
               <p className="text-foreground/60 text-sm mb-1">Aktif Kullanıcı</p>
-              <p className="text-3xl font-bold text-purple-400">15,423</p>
+              <p className="text-3xl font-bold text-purple-400">{mainStats.activeUsers.toLocaleString()}</p>
             </CardContent>
           </Card>
         </div>
@@ -277,7 +282,7 @@ export default function IstatistiklerPage() {
                 </div>
                 <div>
                   <p className="text-foreground/60 text-xs">Şu Anda Aktif</p>
-                  <p className="text-2xl font-bold gradient-text">342</p>
+                  <p className="text-2xl font-bold gradient-text">{liveStats.activeNow}</p>
                 </div>
               </div>
               <p className="text-xs text-foreground/60">Canlı kupon sayısı</p>
@@ -292,7 +297,9 @@ export default function IstatistiklerPage() {
                 </div>
                 <div>
                   <p className="text-foreground/60 text-xs">Bugün Kazanılan</p>
-                  <p className="text-2xl font-bold text-yellow-400">₺94.2K</p>
+                  <p className="text-2xl font-bold text-yellow-400">
+                    ₺{(liveStats.todayWon / 1000).toFixed(1)}K
+                  </p>
                 </div>
               </div>
               <p className="text-xs text-foreground/60">Son 24 saat</p>
@@ -307,7 +314,7 @@ export default function IstatistiklerPage() {
                 </div>
                 <div>
                   <p className="text-foreground/60 text-xs">En Yüksek Oran</p>
-                  <p className="text-2xl font-bold text-blue-400">156.4</p>
+                  <p className="text-2xl font-bold text-blue-400">{liveStats.highestOdds}</p>
                 </div>
               </div>
               <p className="text-xs text-foreground/60">Kazanan kupon</p>
