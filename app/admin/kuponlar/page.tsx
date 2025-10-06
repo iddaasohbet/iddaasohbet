@@ -194,7 +194,8 @@ export default function AdminKuponlarPage() {
     if (!selectedCoupon) return
     const body: any = {
       title: formData.title,
-      status: filterStatus === 'all' ? undefined : filterStatus,
+      // Liste filtresinden değil, formdaki durumdan gönder
+      status: formData.status,
       stake: formData.stake,
       totalOdds: formData.totalOdds,
       potentialWin: (parseFloat(formData.totalOdds || '0') * parseFloat(formData.stake || '0')).toFixed(2),
