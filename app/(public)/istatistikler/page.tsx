@@ -1,6 +1,6 @@
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+'use client'
 
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -21,39 +21,30 @@ import {
   CircleDot
 } from 'lucide-react'
 
-async function getIstatistiklerData() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000'
-    
-    const res = await fetch(`${baseUrl}/api/istatistikler`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) {
-      return { 
-        mainStats: { totalCoupons: 0, winRate: 0, totalProfit: 0, activeUsers: 0 },
-        dailyStats: [],
-        betTypes: [],
-        leagues: [],
-        liveStats: { activeNow: 0, todayWon: 0, highestOdds: '0.0' }
-      }
-    }
-    return await res.json()
-  } catch (error) {
-    console.error('İstatistikler fetch error:', error)
-    return { 
-      mainStats: { totalCoupons: 0, winRate: 0, totalProfit: 0, activeUsers: 0 },
-      dailyStats: [],
-      betTypes: [],
-      leagues: [],
-      liveStats: { activeNow: 0, todayWon: 0, highestOdds: '0.0' }
-    }
-  }
-}
+export default function IstatistiklerPage() {
+  const [data, setData] = useState({
+    mainStats: { totalCoupons: 0, winRate: 0, totalProfit: 0, activeUsers: 0 },
+    dailyStats: [],
+    betTypes: [],
+    leagues: [],
+    liveStats: { activeNow: 0, todayWon: 0, highestOdds: '0.0' }
+  })
+  const [loading, setLoading] = useState(true)
 
-export default async function IstatistiklerPage() {
-  const { mainStats, dailyStats, betTypes, leagues, liveStats } = await getIstatistiklerData()
+  useEffect(() => {
+    fetch('/api/istatistikler')
+      .then(res => res.json())
+      .then(data => {
+        setData(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('İstatistikler yükleme hatası:', err)
+        setLoading(false)
+      })
+  }, [])
+
+  const { mainStats, dailyStats, betTypes, leagues, liveStats } = data
   return (
     <div className="min-h-screen py-8 relative">
       {/* Background Pattern */}
