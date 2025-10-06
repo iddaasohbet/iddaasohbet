@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'İddaaSohbet - Türkiye\'nin En İyi İddaa Kupon Paylaşım Platformu',
   description: 'İddaa kuponlarını paylaş, diğer kullanıcıların kuponlarını incele, başarılı tahminciları takip et ve kazananlar arasına katıl!',
   keywords: 'iddaa, kupon paylaşımı, iddaa tahminleri, bahis, spor bahisleri',
+  icons: {
+    icon: '/icon',
+  },
 }
 
 export default function RootLayout({
