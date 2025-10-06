@@ -4,11 +4,10 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X, Home, BarChart3, Users } from 'lucide-react'
+import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X, Home, BarChart3, Users, Radio } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
-import LiveScores from './LiveScores'
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -32,7 +31,6 @@ export default function Header() {
   }, [showMobileMenu])
   useEffect(() => { setIsMounted(true) }, [])
   return (
-    <>
     <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo with Neon Effect */}
@@ -58,6 +56,18 @@ export default function Header() {
             <Button variant="ghost" className="text-foreground/80 hover:text-green-400 hover:bg-white/5 transition-all">
               <Flame className="h-4 w-4 mr-1 text-orange-500" />
               Kuponlar
+            </Button>
+          </Link>
+          <Link href="/canli-skorlar">
+            <Button variant="ghost" className="text-foreground/80 hover:text-green-400 hover:bg-white/5 transition-all relative">
+              <Radio className="h-4 w-4 mr-1 text-red-500" />
+              <span className="relative">
+                Canlı Skorlar
+                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+              </span>
             </Button>
           </Link>
           <Link href="/tahmincilar">
@@ -264,9 +274,27 @@ export default function Header() {
                 </div>
               </Link>
 
+              {/* Canlı Skorlar */}
+              <Link href="/canli-skorlar" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '400ms'}}>
+                  <div className={`absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/5 transition-opacity duration-300 ${pathname === '/canli-skorlar' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-red-400 to-red-600 transition-all duration-300 ${pathname === '/canli-skorlar' ? 'opacity-100' : 'opacity-0'}`}></div>
+                  <Button variant="ghost" className={`w-full justify-start h-16 text-lg font-bold backdrop-blur-xl border transition-all duration-300 ${pathname === '/canli-skorlar' ? 'border-red-500/50 text-red-400 bg-red-500/10' : 'border-white/10 text-white/90 hover:border-red-500/30 hover:text-red-400'}`}>
+                    <Radio className={`h-6 w-6 mr-4 transition-transform duration-300 ${pathname === '/canli-skorlar' ? 'scale-110 animate-pulse' : 'group-hover:scale-110'}`} />
+                    <span className="relative">
+                      Canlı Skorlar
+                      <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                    </span>
+                  </Button>
+                </div>
+              </Link>
+
               {/* Tahmincilar */}
               <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
-                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '400ms'}}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '500ms'}}>
                   <div className={`absolute inset-0 bg-gradient-to-r from-blue-500/20 to-blue-600/5 transition-opacity duration-300 ${pathname === '/tahmincilar' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
                   <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 transition-all duration-300 ${pathname === '/tahmincilar' ? 'opacity-100' : 'opacity-0'}`}></div>
                   <Button variant="ghost" className={`w-full justify-start h-16 text-lg font-bold backdrop-blur-xl border transition-all duration-300 ${pathname === '/tahmincilar' ? 'border-blue-500/50 text-blue-400 bg-blue-500/10' : 'border-white/10 text-white/90 hover:border-blue-500/30 hover:text-blue-400'}`}>
@@ -278,7 +306,7 @@ export default function Header() {
 
               {/* İstatistikler */}
               <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
-                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '500ms'}}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '600ms'}}>
                   <div className={`absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-600/5 transition-opacity duration-300 ${pathname === '/istatistikler' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
                   <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-400 to-purple-600 transition-all duration-300 ${pathname === '/istatistikler' ? 'opacity-100' : 'opacity-0'}`}></div>
                   <Button variant="ghost" className={`w-full justify-start h-16 text-lg font-bold backdrop-blur-xl border transition-all duration-300 ${pathname === '/istatistikler' ? 'border-purple-500/50 text-purple-400 bg-purple-500/10' : 'border-white/10 text-white/90 hover:border-purple-500/30 hover:text-purple-400'}`}>
@@ -381,9 +409,5 @@ export default function Header() {
 
       {/* No separate backdrop needed; fullscreen menu covers it. */}
     </header>
-    
-    {/* Live Scores Bar */}
-    <LiveScores />
-    </>
   )
 }
