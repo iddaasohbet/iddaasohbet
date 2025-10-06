@@ -4,13 +4,24 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 
 export default async function Hero() {
-  // Server-side: fetch last coupon directly from DB for reliability
-  const latestCoupon = await prisma.coupon.findFirst({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      matches: true,
-    },
-  })
+  // Server-side: fetch stats and latest coupon from DB
+  const [latestCoupon, totalUsers, totalCoupons, wonCoupons, lostCoupons] = await Promise.all([
+    prisma.coupon.findFirst({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        matches: true,
+      },
+    }),
+    prisma.user.count(),
+    prisma.coupon.count(),
+    prisma.coupon.count({ where: { status: 'WON' } }),
+    prisma.coupon.count({ where: { status: 'LOST' } })
+  ])
+
+  const completedCoupons = wonCoupons + lostCoupons
+  const winRate = completedCoupons > 0 
+    ? Math.round((wonCoupons / completedCoupons) * 100) 
+    : 0
   return (
     <section className="relative overflow-hidden py-20 md:py-32 grid-pattern">
       {/* Animated Background Elements */}
@@ -60,21 +71,25 @@ export default async function Hero() {
               <div className="glass-dark p-4 rounded-xl border border-white/5 card-premium">
                 <div className="flex items-center space-x-2 mb-2">
                   <Users className="h-5 w-5 text-green-400" />
-                  <span className="text-3xl font-bold gradient-text">15K+</span>
+                  <span className="text-3xl font-bold gradient-text">
+                    {totalUsers >= 1000 ? `${(totalUsers / 1000).toFixed(0)}K+` : totalUsers}
+                  </span>
                 </div>
                 <p className="text-sm text-foreground/60">Aktif Kullanıcı</p>
               </div>
               <div className="glass-dark p-4 rounded-xl border border-white/5 card-premium">
                 <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="h-5 w-5 text-yellow-400" />
-                  <span className="text-3xl font-bold gradient-text">50K+</span>
+                  <span className="text-3xl font-bold gradient-text">
+                    {totalCoupons >= 1000 ? `${(totalCoupons / 1000).toFixed(0)}K+` : totalCoupons}
+                  </span>
                 </div>
                 <p className="text-sm text-foreground/60">Paylaşılan Kupon</p>
               </div>
               <div className="glass-dark p-4 rounded-xl border border-white/5 card-premium">
                 <div className="flex items-center space-x-2 mb-2">
                   <Trophy className="h-5 w-5 text-green-400" />
-                  <span className="text-3xl font-bold gradient-text">%73</span>
+                  <span className="text-3xl font-bold gradient-text">%{winRate}</span>
                 </div>
                 <p className="text-sm text-foreground/60">Başarı Oranı</p>
               </div>
