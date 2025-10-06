@@ -100,8 +100,6 @@ export default function LiveChatPage() {
       setValue('')
       setReplyTo(null)
       await fetchMessages()
-      // Mesaj gönderince alta kaydır
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
     } finally {
       setSending(false)
     }
@@ -175,60 +173,93 @@ export default function LiveChatPage() {
               {messages.map((m, idx) => {
                 const prev = messages[idx - 1]
                 const showDate = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString()
-                  const mine = m.user?.id === (session?.user as any)?.id
-                  return (
-                    <div key={m.id}>
-                      {showDate && (
-                        <div className="text-center text-[10px] text-foreground/50 my-2">
-                          {new Date(m.createdAt).toLocaleDateString('tr-TR')}
+                const mine = m.user?.id === (session?.user as any)?.id
+                const isBot = m.user?.id === 'bot'
+                return (
+                  <div key={m.id}>
+                    {showDate && (
+                      <div className="text-center text-[10px] text-foreground/50 my-2">
+                        {new Date(m.createdAt).toLocaleDateString('tr-TR')}
+                      </div>
+                    )}
+                    <div className={`flex gap-3 ${mine ? 'justify-end' : 'justify-start'} group`}>
+                      {!mine && !isBot && (
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-yellow-400 flex items-center justify-center text-black font-bold text-xs">
+                            {(m.user?.username || m.user?.name || 'U').charAt(0).toUpperCase()}
+                          </div>
                         </div>
                       )}
-                      <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${m.user?.id === 'bot' ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
-                          {m.parent && (
-                            <div className="text-[10px] mb-1 px-2 py-1 rounded bg-black/20 border border-white/10">
-                              <span className="text-foreground/50">Yanıtlanan:</span> <span className="text-foreground/80 font-medium">{m.parent.user.username || m.parent.user.name}</span> — {m.parent.content.slice(0, 80)}{m.parent.content.length>80?'…':''}
-                            </div>
-                          )}
-                        <div className="text-xs text-foreground/60 mb-1 font-medium">{m.user?.username || m.user?.name || 'Kullanıcı'}</div>
-                        <div className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</div>
-                          <div className="flex items-center gap-2 mt-2">
-                            {/* Tepki verme */}
-                            <button
-                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
-                              onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '👍' }) }); fetchMessages() }}
-                            >👍</button>
-                            <button
-                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
-                              onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '🔥' }) }); fetchMessages() }}
-                            >🔥</button>
-                            <button
-                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
-                              onClick={() => setReplyTo(m)}
-                            >
-                              <Reply className="h-3 w-3 inline mr-1" /> Yanıtla
-                            </button>
-                            {(session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'MODERATOR' ? (
-                              <button
-                                className="text-[11px] px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20"
-                                onClick={async () => { await fetch(`/api/chat/moderation?id=${m.id}`, { method: 'DELETE' }); fetchMessages() }}
-                              >
-                                <Trash2 className="h-3 w-3 inline mr-1" /> Sil
-                              </button>
-                            ) : null}
+                      {isBot && (
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="h-8 w-8 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
+                            <Radio className="h-4 w-4 text-purple-400" />
                           </div>
+                        </div>
+                      )}
+                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg ${isBot ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40' : 'bg-white/5 border border-white/10 backdrop-blur-sm'}`}>
+                        {m.parent && (
+                          <div className="text-[10px] mb-2 px-2 py-1.5 rounded-lg bg-black/30 border border-white/10">
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <Reply className="h-3 w-3 text-foreground/40" />
+                              <span className="text-foreground/60 font-medium">{m.parent.user.username || m.parent.user.name}</span>
+                            </div>
+                            <div className="text-foreground/70 line-clamp-2">{m.parent.content.slice(0, 80)}{m.parent.content.length>80?'…':''}</div>
+                          </div>
+                        )}
+                        {!mine && !isBot && (
+                          <div className="text-xs text-foreground/60 mb-1.5 font-semibold">{m.user?.username || m.user?.name || 'Kullanıcı'}</div>
+                        )}
+                        {isBot && (
+                          <div className="text-xs text-purple-400 mb-1.5 font-semibold flex items-center gap-1">
+                            <Radio className="h-3 w-3" />
+                            Sohbet Botu
+                          </div>
+                        )}
+                        <div className="whitespace-pre-wrap break-words leading-relaxed text-foreground/90">{m.content}</div>
+                        <div className="flex items-center gap-2 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            className="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-110 transition-all"
+                            onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '👍' }) }); fetchMessages() }}
+                          >👍</button>
+                          <button
+                            className="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-110 transition-all"
+                            onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '🔥' }) }); fetchMessages() }}
+                          >🔥</button>
+                          <button
+                            className="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center gap-1 transition-all"
+                            onClick={() => setReplyTo(m)}
+                          >
+                            <Reply className="h-3 w-3" /> Yanıtla
+                          </button>
+                          {(session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'MODERATOR' ? (
+                            <button
+                              className="text-[11px] px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 flex items-center gap-1 transition-all"
+                              onClick={async () => { await fetch(`/api/chat/moderation?id=${m.id}`, { method: 'DELETE' }); fetchMessages() }}
+                            >
+                              <Trash2 className="h-3 w-3" /> Sil
+                            </button>
+                          ) : null}
+                        </div>
                         {m.reactions && m.reactions.length > 0 && (
-                          <div className="flex gap-1 mt-1">
+                          <div className="flex gap-1.5 mt-2">
                             {Object.entries(m.reactions.reduce((acc: Record<string, number>, r) => { acc[r.emoji] = (acc[r.emoji]||0)+1; return acc }, {})).map(([emoji, count]) => (
-                              <span key={emoji} className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 border border-white/10">{emoji} {count}</span>
+                              <span key={emoji} className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 cursor-pointer transition-all">{emoji} {count}</span>
                             ))}
                           </div>
                         )}
                       </div>
-                      </div>
+                      {mine && (
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-yellow-400 flex items-center justify-center text-black font-bold text-xs">
+                            {((session?.user as any)?.username || session?.user?.name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )
-                })}
+                  </div>
+                )
+              })}
                 <div ref={bottomRef} />
               </div>
               <div className="p-4 border-t border-white/5 flex gap-2">
