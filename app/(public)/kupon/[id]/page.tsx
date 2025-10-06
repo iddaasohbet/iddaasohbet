@@ -1,4 +1,7 @@
-import { notFound } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,65 +16,66 @@ import {
   Eye
 } from 'lucide-react'
 import Link from 'next/link'
-import { prisma } from '@/lib/db'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import KuponInteractions from '@/components/KuponInteractions'
 import KuponComments from '@/components/KuponComments'
 
-async function getCoupon(id: string) {
-  try {
-    const coupon = await prisma.coupon.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-            bio: true,
-            createdAt: true,
-          },
-        },
-        matches: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
-    })
+export default function KuponDetayPage() {
+  const params = useParams()
+  const router = useRouter()
+  const id = params.id as string
+  
+  const [coupon, setCoupon] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-    if (!coupon) return null
+  useEffect(() => {
+    if (!id) return
+    
+    fetch(`/api/kuponlar/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Kupon bulunamadı')
+        return res.json()
+      })
+      .then(data => {
+        setCoupon(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Kupon yükleme hatası:', err)
+        setError(true)
+        setLoading(false)
+      })
+  }, [id])
 
-    // Görüntülenme sayısını artır
-    await prisma.coupon.update({
-      where: { id },
-      data: {
-        viewCount: {
-          increment: 1,
-        },
-      },
-    })
-
-    return coupon
-  } catch (error) {
-    console.error('Kupon yüklenirken hata:', error)
-    return null
+  if (loading) {
+    return (
+      <div className="min-h-screen py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-foreground/60">Kupon yükleniyor...</p>
+        </div>
+      </div>
+    )
   }
-}
 
-export default async function KuponDetayPage({ params }: { params: { id: string } }) {
-  const { id } = await params
-  const coupon = await getCoupon(id)
-
-  if (!coupon) {
-    notFound()
+  if (error || !coupon) {
+    return (
+      <div className="min-h-screen py-12 flex items-center justify-center">
+        <Card className="glass-dark border-white/10 max-w-md mx-auto">
+          <CardContent className="p-12 text-center">
+            <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold mb-2">Kupon Bulunamadı</h3>
+            <p className="text-foreground/60 mb-6">Aradığınız kupon mevcut değil veya silinmiş olabilir.</p>
+            <Link href="/kuponlar">
+              <Button className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-semibold">
+                Kuponlara Dön
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   const getStatusIcon = (status: string) => {

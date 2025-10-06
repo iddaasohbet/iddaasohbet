@@ -20,7 +20,11 @@ export async function GET(
             bio: true,
           },
         },
-        matches: true,
+        matches: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         comments: {
           include: {
             user: {
@@ -36,19 +40,22 @@ export async function GET(
             createdAt: 'desc',
           },
         },
-        likes: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-              },
-            },
-          },
-        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true
+          }
+        }
       },
     })
+    
+    // View count artır
+    if (coupon) {
+      await prisma.coupon.update({
+        where: { id: params.id },
+        data: { viewCount: { increment: 1 } }
+      }).catch(() => {}) // Görüntülenme artırma hatası kritik değil
+    }
 
     if (!coupon) {
       return NextResponse.json({ error: 'Kupon bulunamadı' }, { status: 404 })
