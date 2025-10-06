@@ -210,23 +210,23 @@ export default function Header() {
             {/* Navigation Links */}
             <nav className="flex-1 overflow-y-auto p-6 space-y-2 bg-neutral-950">
               <Link href="/" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                   Ana Sayfa
                 </Button>
               </Link>
               <Link href="/kuponlar" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                   <Flame className="h-5 w-5 mr-3 text-orange-500" />
                   Kuponlar
                 </Button>
               </Link>
               <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                   Tahmincilar
                 </Button>
               </Link>
               <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                   İstatistikler
                 </Button>
               </Link>
@@ -235,13 +235,13 @@ export default function Header() {
                 <>
                   <div className="border-t border-white/10 my-4"></div>
                   <Link href={`/profil/${session.user?.username}`} onClick={() => setShowMobileMenu(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                    <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                       <User className="h-5 w-5 mr-3" />
                       Profilim
                     </Button>
                   </Link>
                   <Link href="/hesap/ayarlar" onClick={() => setShowMobileMenu(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
+                    <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                       <Settings className="h-5 w-5 mr-3" />
                       Ayarlar
                     </Button>
