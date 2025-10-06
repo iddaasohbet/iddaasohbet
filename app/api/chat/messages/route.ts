@@ -30,10 +30,21 @@ export async function POST(request: NextRequest) {
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
     }
+    const text = content.trim().slice(0, 1000)
+
+    // Simple bot commands
+    if (text === '/kurallar' || text === '/yardim') {
+      const rules = `Sohbet Kuralları:\n- Saygılı olun, hakaret yok.\n- Spam / reklam yasaktır.\n- Kişisel bilgi paylaşmayın.\nKomutlar: /kurallar, /yardim`
+      // create user message then bot reply
+      await prisma.chatMessage.create({ data: { userId: session.user.id, content: text } })
+      const bot = await prisma.chatMessage.create({ data: { userId: session.user.id, content: rules } })
+      return NextResponse.json({ message: bot })
+    }
+
     const msg = await prisma.chatMessage.create({
       data: {
         userId: session.user.id,
-        content: content.trim().slice(0, 1000)
+        content: text
       },
       include: {
         user: { select: { id: true, username: true, name: true, avatar: true } }
