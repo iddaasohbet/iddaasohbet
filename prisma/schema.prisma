@@ -36,6 +36,7 @@ model User {
   likes         Like[]
   chatMessages  ChatMessage[]
   chatPresence  ChatPresence?
+  chatReactions ChatReaction[]
   followers     Follow[]  @relation("UserFollowers")
   following     Follow[]  @relation("UserFollowing")
   
@@ -162,7 +163,7 @@ model ChatMessage {
   channelId  String
   channel    ChatChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
   parentId   String?
-  parent     ChatMessage?  @relation("MessageReplies", fields: [parentId], references: [id])
+  parent     ChatMessage?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies    ChatMessage[] @relation("MessageReplies")
   content    String        @db.Text
   createdAt  DateTime      @default(now())
