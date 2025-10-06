@@ -4,7 +4,7 @@ export async function GET() {
   try {
     // API-Football'dan ligleri çek
     const apiKey = process.env.APIFOOTBALL_KEY || process.env.NEXT_PUBLIC_APIFOOTBALL_KEY || '807916c44ff9ddf5dcaf7cf22109b9cd'
-    const response = await fetch('https://v3.football.api-sports.io/leagues?current=true', {
+    const response = await fetch('https://v3.football.api-sports.io/leagues?current=true&type=league', {
       method: 'GET',
       headers: {
         'x-rapidapi-key': apiKey,

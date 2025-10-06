@@ -42,7 +42,8 @@ export default function LiveLeagues() {
             const name = item.league.name.toLowerCase()
             return popularNames.some(alias => name.includes(alias))
           })
-          setLeagues(popularLeagues.slice(0, 8))
+          // Fallback: hiç eşleşme yoksa ilk 8 ligi göster
+          setLeagues((popularLeagues.length > 0 ? popularLeagues : data.response).slice(0, 8))
         }
       } catch (error) {
         console.error('Failed to fetch leagues:', error)
