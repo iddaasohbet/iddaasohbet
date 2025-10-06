@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function Header() {
   const { data: session, status } = useSession()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' })
@@ -25,6 +27,7 @@ export default function Header() {
     }
     return () => document?.body?.classList?.remove('overflow-hidden')
   }, [showMobileMenu])
+  useEffect(() => { setIsMounted(true) }, [])
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -173,11 +176,12 @@ export default function Header() {
         {/* Mobile Menu moved outside container */}
       </div>
 
-      {/* Mobile Menu - Fullscreen Overlay */}
-      <div className={`fixed inset-0 bg-neutral-950 text-white z-[9999] md:hidden transform transition-transform duration-300 ease-out ${
-        showMobileMenu ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <div className="flex flex-col h-full">
+      {/* Mobile Menu - Fullscreen Overlay via Portal */}
+      {isMounted && createPortal(
+        <div className={`fixed inset-0 bg-neutral-950 text-white z-[9999] md:hidden transform transition-transform duration-300 ease-out ${
+          showMobileMenu ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="flex flex-col h-full">
           {/* Menu Header */}
           <div className="p-6 border-b border-white/10 bg-neutral-950">
             <div className="flex items-center justify-between mb-4">
@@ -262,7 +266,7 @@ export default function Header() {
           </nav>
 
           {/* Bottom Actions */}
-          <div className="p-6 border-t border-white/10 space-y-3">
+            <div className="p-6 border-t border-white/10 space-y-3">
             {!session ? (
               <>
                 <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
@@ -289,9 +293,9 @@ export default function Header() {
                 Çıkış Yap
               </Button>
             )}
+            </div>
           </div>
-        </div>
-      </div>
+        </div>, document.body)}
 
       {/* No separate backdrop needed; fullscreen menu covers it. */}
     </header>
