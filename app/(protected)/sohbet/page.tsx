@@ -21,6 +21,7 @@ export default function LiveChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
+  const [online, setOnline] = useState<{id:string; user:{id:string; username:string|null; name:string|null; avatar?:string|null}; typingUntil?:string|null}[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const didMountRef = useRef(false)
 
@@ -54,6 +55,13 @@ export default function LiveChatPage() {
   useEffect(() => {
     fetchMessages()
     const id = setInterval(fetchMessages, 5000)
+    const pres = setInterval(async () => {
+      // Heartbeat
+      await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+      const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+      const d = await r.json()
+      setOnline(d.users || [])
+    }, 5000)
     return () => clearInterval(id)
   }, [])
 
@@ -88,17 +96,21 @@ export default function LiveChatPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="max-h-[65vh] overflow-y-auto p-3 space-y-2">
-                {/* Placeholder - will populate from API later */}
-                {session?.user && (
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                {online.map((o) => (
+                  <div key={o.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
                     <div className="relative h-2 w-2">
                       <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-60"></span>
                       <span className="relative block h-2 w-2 rounded-full bg-green-500"></span>
                     </div>
-                    <span className="text-sm truncate">{(session.user as any)?.username || session.user.name}</span>
+                    <span className="text-sm truncate">{o.user?.username || o.user?.name || 'Kullanıcı'}</span>
+                    {o.typingUntil && new Date(o.typingUntil) > new Date() ? (
+                      <span className="ml-auto text-[10px] text-foreground/50">yazıyor…</span>
+                    ) : null}
                   </div>
+                ))}
+                {online.length === 0 && (
+                  <div className="text-xs text-foreground/60 px-2">Şu anda çevrimiçi kimse yok</div>
                 )}
-                <div className="text-xs text-foreground/60 px-2">Yakında: tüm online kullanıcılar</div>
               </div>
             </CardContent>
           </Card>
