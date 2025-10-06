@@ -5,24 +5,32 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') || 'last' // 'today', 'live' veya 'last'
   
   try {
+    const apiKey = process.env.APIFOOTBALL_KEY || process.env.NEXT_PUBLIC_APIFOOTBALL_KEY || '807916c44ff9ddf5dcaf7cf22109b9cd'
     let url = 'https://v3.football.api-sports.io/fixtures?'
     
     if (type === 'live') {
       // Canlı maçlar
       url += 'live=all'
     } else if (type === 'today') {
-      // Bugünün maçları (Süper Lig)
-      const today = new Date().toISOString().split('T')[0]
-      url += `league=203&season=2025&date=${today}`
+      // Bugünün maçları (Süper Lig) - Europe/Istanbul zaman dilimine göre
+      const todayIstanbul = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Istanbul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date())
+      url += `league=203&season=2025&date=${todayIstanbul}`
     } else {
       // Son 20 maç (her zaman veri var)
       url += 'last=20'
     }
+    // Zaman dilimi
+    url += '&timezone=Europe/Istanbul'
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
+        'x-rapidapi-key': apiKey,
         'x-rapidapi-host': 'v3.football.api-sports.io'
       },
       cache: 'no-store'
@@ -40,11 +48,11 @@ export async function GET(request: Request) {
     // Eğer bugün maç yoksa veya canlı maç yoksa, son maçları getir
     if ((type === 'today' || type === 'live') && (!data.response || data.response.length === 0)) {
       console.log('No matches found, fetching last 20...')
-      const fallbackUrl = 'https://v3.football.api-sports.io/fixtures?last=20'
+      const fallbackUrl = 'https://v3.football.api-sports.io/fixtures?last=20&timezone=Europe/Istanbul'
       const fallbackResponse = await fetch(fallbackUrl, {
         method: 'GET',
         headers: {
-          'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
+          'x-rapidapi-key': apiKey,
           'x-rapidapi-host': 'v3.football.api-sports.io'
         },
         cache: 'no-store'

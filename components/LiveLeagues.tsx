@@ -27,9 +27,21 @@ export default function LiveLeagues() {
         console.log('Leagues data:', data)
         if (data.response && Array.isArray(data.response)) {
           // Popüler ligleri filtrele
-          const popularLeagues = data.response.filter((item: League) => 
-            ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1', 'Süper Lig', 'Champions League'].includes(item.league.name)
-          )
+          const popularNames = [
+            'premier league',
+            'la liga',
+            'serie a',
+            'bundesliga',
+            'ligue 1',
+            'süper lig',
+            'super lig',
+            'uefa champions league',
+            'champions league'
+          ]
+          const popularLeagues = data.response.filter((item: League) => {
+            const name = item.league.name.toLowerCase()
+            return popularNames.some(alias => name.includes(alias))
+          })
           setLeagues(popularLeagues.slice(0, 8))
         }
       } catch (error) {
@@ -62,7 +74,7 @@ export default function LiveLeagues() {
     )
   }
 
-  if (leagues.length === 0) return null
+  // Bar her zaman görünür kalsın
 
   return (
     <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-green-950/10 to-black/40 backdrop-blur-sm">
@@ -80,19 +92,25 @@ export default function LiveLeagues() {
 
           {/* Scrolling Leagues */}
           <div className="flex-1 overflow-hidden relative">
-            <div className="flex gap-6 animate-scroll">
-              {[...leagues, ...leagues].map((league, index) => (
-                <div
-                  key={`${league.league.id}-${index}`}
-                  className="flex items-center gap-2 whitespace-nowrap group cursor-pointer"
-                >
-                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span className="text-sm text-foreground/70 group-hover:text-green-400 transition-colors">
-                    {league.league.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {leagues.length > 0 ? (
+              <div className="flex gap-6 animate-scroll">
+                {[...leagues, ...leagues].map((league, index) => (
+                  <div
+                    key={`${league.league.id}-${index}`}
+                    className="flex items-center gap-2 whitespace-nowrap group cursor-pointer"
+                  >
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-sm text-foreground/70 group-hover:text-green-400 transition-colors">
+                      {league.league.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-6">
+                <span className="text-sm text-foreground/50">Aktif lig bulunamadı</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
