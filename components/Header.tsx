@@ -173,8 +173,8 @@ export default function Header() {
         {/* Mobile Menu moved outside container */}
       </div>
 
-      {/* Mobile Menu - Slide from Right (full-screen scope) */}
-      <div className={`fixed top-0 right-0 bottom-0 w-[92vw] max-w-[420px] bg-neutral-950 text-white border-l border-green-500/30 ring-1 ring-white/10 z-[9999] md:hidden shadow-2xl transform transition-transform duration-300 ease-out ${
+      {/* Mobile Menu - Fullscreen Overlay */}
+      <div className={`fixed inset-0 bg-neutral-950 text-white z-[9999] md:hidden transform transition-transform duration-300 ease-out ${
         showMobileMenu ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
@@ -211,7 +211,7 @@ export default function Header() {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 overflow-y-auto p-6 space-y-2 bg-neutral-950">
+          <nav className="flex-1 overflow-y-auto p-6 space-y-2">
             <Link href="/" onClick={() => setShowMobileMenu(false)}>
               <Button variant="ghost" className="w-full justify-start h-12 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">
                 Ana Sayfa
@@ -262,7 +262,7 @@ export default function Header() {
           </nav>
 
           {/* Bottom Actions */}
-          <div className="p-6 border-t border-white/10 space-y-3 bg-neutral-950">
+          <div className="p-6 border-t border-white/10 space-y-3">
             {!session ? (
               <>
                 <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
@@ -293,13 +293,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Backdrop */}
-      {showMobileMenu && (
-        <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-0 z-[9900] md:hidden" 
-          onClick={() => setShowMobileMenu(false)}
-        ></div>
-      )}
+      {/* No separate backdrop needed; fullscreen menu covers it. */}
     </header>
   )
 }
