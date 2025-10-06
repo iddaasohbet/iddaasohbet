@@ -7,7 +7,8 @@ export async function GET() {
     const response = await fetch('https://v3.football.api-sports.io/leagues?current=true&type=league', {
       method: 'GET',
       headers: {
-        'x-apisports-key': apiKey
+        'x-rapidapi-key': apiKey,
+        'x-rapidapi-host': 'v3.football.api-sports.io'
       },
       cache: 'no-store'
     })
