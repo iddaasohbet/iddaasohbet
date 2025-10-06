@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Trophy, TrendingUp, Users, Zap, ArrowRight, Sparkles } from 'lucide-react'
+import { Trophy, TrendingUp, Users, Zap, ArrowRight, Sparkles, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 
@@ -116,7 +116,31 @@ export default async function Hero() {
               
               {latestCoupon ? (
                 <>
-                  <div className="space-y-3 mb-6">
+                  {/* Status Badge Overlay */}
+                  {latestCoupon.status !== 'PENDING' && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                      <div className={`px-8 py-4 rounded-2xl backdrop-blur-md border-2 ${
+                        latestCoupon.status === 'WON' 
+                          ? 'bg-green-500/20 border-green-500/50' 
+                          : 'bg-red-500/20 border-red-500/50'
+                      } shadow-2xl`}>
+                        <div className="flex items-center space-x-3">
+                          {latestCoupon.status === 'WON' ? (
+                            <CheckCircle className="h-8 w-8 text-green-400" />
+                          ) : (
+                            <XCircle className="h-8 w-8 text-red-400" />
+                          )}
+                          <span className={`text-3xl font-bold ${
+                            latestCoupon.status === 'WON' ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {latestCoupon.status === 'WON' ? 'KAZANDI' : 'KAYBETTİ'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`space-y-3 mb-6 ${latestCoupon.status !== 'PENDING' ? 'opacity-60' : ''}`}>
                     {(latestCoupon.matches || []).slice(0, 3).map((m: any, idx: number) => (
                       <div key={m.id || idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all">
                         <div className="flex justify-between items-start mb-2">
