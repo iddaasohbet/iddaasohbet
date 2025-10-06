@@ -49,7 +49,7 @@ export default function CanliSkorlarPage() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
-  const fetchScores = async (type: 'today' | 'live' = 'today') => {
+  const fetchScores = async (type: 'today' | 'live' = 'live') => {
     setLoading(true)
     try {
       const res = await fetch(`/api/live-scores?type=${type}`)
@@ -66,9 +66,9 @@ export default function CanliSkorlarPage() {
   }
 
   useEffect(() => {
-    fetchScores()
-    // Her 2 dakikada bir otomatik güncelle
-    const interval = setInterval(fetchScores, 120000)
+    fetchScores('live') // Default olarak canlı maçlar
+    // Her 1 dakikada bir otomatik güncelle
+    const interval = setInterval(() => fetchScores('live'), 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -104,7 +104,7 @@ export default function CanliSkorlarPage() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
               </div>
             </div>
-            <p className="text-foreground/60">Süper Lig maç sonuçları</p>
+            <p className="text-foreground/60">Tüm dünyadan canlı maç skorları</p>
             <p className="text-sm text-foreground/40 mt-1">
               Son güncelleme: {lastUpdate.toLocaleTimeString('tr-TR')}
             </p>
@@ -138,84 +138,92 @@ export default function CanliSkorlarPage() {
           </div>
         </div>
 
-        {/* Matches Grid */}
+        {/* Matches List - Alt Alta */}
         {loading && fixtures.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+          <div className="space-y-4">
+            {[...Array(8)].map((_, i) => (
               <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
-                <div className="h-24 bg-white/5 rounded-lg mb-4"></div>
-                <div className="h-4 bg-white/5 rounded mb-2"></div>
-                <div className="h-4 bg-white/5 rounded w-2/3"></div>
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-32 bg-white/5 rounded"></div>
+                  <div className="flex-1 h-8 bg-white/5 rounded"></div>
+                  <div className="h-12 w-20 bg-white/5 rounded"></div>
+                  <div className="flex-1 h-8 bg-white/5 rounded"></div>
+                </div>
               </Card>
             ))}
           </div>
         ) : fixtures.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {fixtures.map((fixture) => (
-              <Card key={fixture.fixture.id} className="glass-dark border-white/10 hover:border-red-500/30 transition-all duration-300 group">
-                <div className="p-6">
-                  {/* Status Badge */}
-                  <div className="flex justify-between items-center mb-4">
-                    {getStatusBadge(fixture.fixture.status.short)}
-                    {fixture.fixture.status.elapsed && (
-                      <span className="text-xs text-red-400 font-semibold">
-                        {fixture.fixture.status.elapsed}'
-                      </span>
-                    )}
-                  </div>
+              <Card key={fixture.fixture.id} className="glass-dark border-white/10 hover:border-red-500/30 transition-all duration-300 group overflow-hidden">
+                <div className="p-5">
+                  <div className="flex items-center gap-4">
+                    {/* Status & Time */}
+                    <div className="flex flex-col items-center gap-2 min-w-[100px]">
+                      {getStatusBadge(fixture.fixture.status.short)}
+                      {fixture.fixture.status.elapsed ? (
+                        <span className="text-xs text-red-400 font-bold">
+                          {fixture.fixture.status.elapsed}'
+                        </span>
+                      ) : (
+                        <span className="text-xs text-foreground/50">
+                          {new Date(fixture.fixture.date).toLocaleTimeString('tr-TR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Match Info */}
-                  <div className="flex flex-col items-center space-y-4">
                     {/* Home Team */}
-                    <div className="flex items-center gap-3 w-full">
+                    <div className="flex items-center gap-3 flex-1 justify-end">
+                      <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors text-right">
+                        {fixture.teams.home.name}
+                      </p>
                       <img 
                         src={fixture.teams.home.logo} 
                         alt={fixture.teams.home.name}
                         className="h-10 w-10 object-contain"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
-                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
-                        {fixture.teams.home.name}
-                      </p>
+                    </div>
+
+                    {/* Score */}
+                    <div className="flex items-center gap-2 min-w-[80px] justify-center">
                       <span className="text-2xl font-black text-white">
                         {fixture.goals.home ?? '-'}
                       </span>
-                    </div>
-
-                    {/* VS Divider */}
-                    <div className="w-full border-t border-white/10 relative">
-                      <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-3 text-xs text-foreground/40 font-semibold">
-                        VS
+                      <span className="text-foreground/40 font-bold">:</span>
+                      <span className="text-2xl font-black text-white">
+                        {fixture.goals.away ?? '-'}
                       </span>
                     </div>
 
                     {/* Away Team */}
-                    <div className="flex items-center gap-3 w-full">
+                    <div className="flex items-center gap-3 flex-1">
                       <img 
                         src={fixture.teams.away.logo} 
                         alt={fixture.teams.away.name}
                         className="h-10 w-10 object-contain"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
-                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
+                      <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
                         {fixture.teams.away.name}
                       </p>
-                      <span className="text-2xl font-black text-white">
-                        {fixture.goals.away ?? '-'}
+                    </div>
+
+                    {/* League Info */}
+                    <div className="hidden lg:flex items-center gap-2 min-w-[150px]">
+                      <img 
+                        src={fixture.league.logo} 
+                        alt={fixture.league.name}
+                        className="h-6 w-6 object-contain"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                      <span className="text-xs text-foreground/60 truncate">
+                        {fixture.league.name}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Match Date */}
-                  <div className="mt-4 pt-4 border-t border-white/10 text-center">
-                    <p className="text-xs text-foreground/60">
-                      {new Date(fixture.fixture.date).toLocaleDateString('tr-TR', {
-                        day: 'numeric',
-                        month: 'long',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
                   </div>
                 </div>
               </Card>
@@ -226,8 +234,8 @@ export default function CanliSkorlarPage() {
             <div className="flex flex-col items-center space-y-4">
               <Trophy className="h-16 w-16 text-foreground/30" />
               <div>
-                <h3 className="text-xl font-semibold mb-2">Bugün Maç Yok</h3>
-                <p className="text-foreground/60">Süper Lig'de bugün oynanacak maç bulunmuyor.</p>
+                <h3 className="text-xl font-semibold mb-2">Şu Anda Canlı Maç Yok</h3>
+                <p className="text-foreground/60">Canlı maç başladığında burada görünecek.</p>
               </div>
             </div>
           </Card>
