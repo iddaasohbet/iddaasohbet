@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const league = searchParams.get('league') || 'super-lig'
+
   try {
-    const response = await fetch('https://api.collectapi.com/sport/leaguesList', {
+    const response = await fetch(`https://api.collectapi.com/sport/results?league=${league}`, {
       method: 'GET',
       headers: {
         'content-type': 'application/json',

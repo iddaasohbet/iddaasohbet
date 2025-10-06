@@ -3,22 +3,26 @@
 import { useEffect, useState } from 'react'
 import { TrendingUp } from 'lucide-react'
 
-interface League {
-  league: string
-  key: string
+interface Match {
+  home: string
+  away: string
+  score: string
+  date?: string
+  status?: string
 }
 
 export default function LiveScores() {
-  const [leagues, setLeagues] = useState<League[]>([])
+  const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const res = await fetch('/api/live-scores')
+        const res = await fetch('/api/live-scores?league=super-lig')
         const data = await res.json()
         if (data.success && data.result) {
-          setLeagues(data.result.slice(0, 6)) // İlk 6 lig
+          // API'den gelen maçları al (son 10 maç)
+          setMatches(data.result.slice(0, 10))
         }
       } catch (error) {
         console.error('Failed to fetch live scores:', error)
@@ -28,8 +32,8 @@ export default function LiveScores() {
     }
 
     fetchScores()
-    // Her 60 saniyede bir güncelle
-    const interval = setInterval(fetchScores, 60000)
+    // Her 2 dakikada bir güncelle
+    const interval = setInterval(fetchScores, 120000)
     return () => clearInterval(interval)
   }, [])
 
@@ -53,7 +57,7 @@ export default function LiveScores() {
     )
   }
 
-  if (leagues.length === 0) return null
+  if (matches.length === 0) return null
 
   return (
     <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-green-950/10 to-black/40 backdrop-blur-sm">
@@ -65,21 +69,28 @@ export default function LiveScores() {
               <TrendingUp className="h-4 w-4" />
               <div className="absolute inset-0 bg-green-500 blur-md opacity-40 animate-pulse"></div>
             </div>
-            <span className="text-sm">Canlı Ligler</span>
+            <span className="text-sm hidden sm:inline">Canlı Skorlar</span>
+            <span className="text-sm sm:hidden">Skorlar</span>
           </div>
 
-          {/* Scrolling Leagues */}
+          {/* Scrolling Matches */}
           <div className="flex-1 overflow-hidden relative">
-            <div className="flex gap-6 animate-scroll">
-              {[...leagues, ...leagues].map((league, index) => (
+            <div className="flex gap-8 animate-scroll">
+              {[...matches, ...matches].map((match, index) => (
                 <div
-                  key={`${league.key}-${index}`}
-                  className="flex items-center gap-2 whitespace-nowrap group cursor-pointer"
+                  key={`match-${index}`}
+                  className="flex items-center gap-3 whitespace-nowrap group cursor-pointer"
                 >
-                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span className="text-sm text-foreground/70 group-hover:text-green-400 transition-colors">
-                    {league.league}
+                  <span className="text-sm text-foreground/80 group-hover:text-white transition-colors font-medium">
+                    {match.home}
                   </span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/30">
+                    <span className="text-xs font-bold text-green-400">{match.score}</span>
+                  </div>
+                  <span className="text-sm text-foreground/80 group-hover:text-white transition-colors font-medium">
+                    {match.away}
+                  </span>
+                  <div className="h-1 w-1 rounded-full bg-green-500/50"></div>
                 </div>
               ))}
             </div>
@@ -97,7 +108,7 @@ export default function LiveScores() {
           }
         }
         .animate-scroll {
-          animation: scroll 30s linear infinite;
+          animation: scroll 40s linear infinite;
         }
         .animate-scroll:hover {
           animation-play-state: paused;
