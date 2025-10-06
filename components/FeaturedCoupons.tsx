@@ -15,7 +15,7 @@ export default function FeaturedCoupons() {
     const load = async () => {
       setLoading(true)
       try {
-        const r = await fetch('/api/kuponlar?limit=4', { cache: 'no-store' })
+        const r = await fetch('/api/kuponlar?limit=6', { cache: 'no-store' })
         const j = await r.json()
         setCoupons(j.coupons || [])
       } catch {
@@ -30,7 +30,7 @@ export default function FeaturedCoupons() {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
             <div className="h-32 bg-white/5 rounded-lg mb-4"></div>
             <div className="h-4 bg-white/5 rounded mb-2"></div>

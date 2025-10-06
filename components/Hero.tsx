@@ -116,21 +116,21 @@ export default async function Hero() {
               
               {latestCoupon ? (
                 <>
-                  {/* Status Badge Overlay */}
+                  {/* Status Badge Overlay - Diagonal */}
                   {latestCoupon.status !== 'PENDING' && (
                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                      <div className={`px-8 py-4 rounded-2xl backdrop-blur-md border-2 ${
+                      <div className={`px-12 py-5 rounded-2xl backdrop-blur-md border-2 -rotate-12 transform ${
                         latestCoupon.status === 'WON' 
-                          ? 'bg-green-500/20 border-green-500/50' 
-                          : 'bg-red-500/20 border-red-500/50'
+                          ? 'bg-green-500/30 border-green-500/60' 
+                          : 'bg-red-500/30 border-red-500/60'
                       } shadow-2xl`}>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-4">
                           {latestCoupon.status === 'WON' ? (
-                            <CheckCircle className="h-8 w-8 text-green-400" />
+                            <CheckCircle className="h-10 w-10 text-green-400" />
                           ) : (
-                            <XCircle className="h-8 w-8 text-red-400" />
+                            <XCircle className="h-10 w-10 text-red-400" />
                           )}
-                          <span className={`text-3xl font-bold ${
+                          <span className={`text-4xl font-bold ${
                             latestCoupon.status === 'WON' ? 'text-green-400' : 'text-red-400'
                           }`}>
                             {latestCoupon.status === 'WON' ? 'KAZANDI' : 'KAYBETTİ'}
