@@ -23,17 +23,10 @@ export default function LiveScoresTicker() {
   const fetchLive = async () => {
     try {
       setLoading(true)
-      // Önce canlı maçlar
+      // Sadece canlı maçlar
       const resLive = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
       const dataLive = await resLive.json()
-      if (Array.isArray(dataLive?.response) && dataLive.response.length > 0) {
-        setItems(dataLive.response)
-      } else {
-        // Bugün deneyelim
-        const resToday = await fetch('/api/live-scores?type=today', { cache: 'no-store' })
-        const dataToday = await resToday.json()
-        setItems(Array.isArray(dataToday?.response) ? dataToday.response : [])
-      }
+      setItems(Array.isArray(dataLive?.response) ? dataLive.response : [])
     } catch (e) {
       console.error('Error fetching scores:', e)
       setItems([])
@@ -51,11 +44,13 @@ export default function LiveScoresTicker() {
   const renderLabel = (
     <div className="flex items-center gap-2 text-red-400 font-semibold whitespace-nowrap">
       <div className="relative">
-        <Radio className="h-4 w-4" />
-        <div className="absolute inset-0 bg-red-500 blur-md opacity-40 animate-pulse"></div>
+        <Radio className="h-4 w-4 animate-pulse" />
+        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+        </span>
       </div>
-      <span className="text-sm hidden sm:inline">Canlı Skorlar</span>
-      <span className="text-sm sm:hidden">Skorlar</span>
+      <span className="text-sm">Canlı</span>
     </div>
   )
 
