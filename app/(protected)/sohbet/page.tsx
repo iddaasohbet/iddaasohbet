@@ -76,7 +76,8 @@ export default function LiveChatPage() {
     const id = setInterval(fetchMessages, 5000)
     const pres = setInterval(async () => {
       try {
-        await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+        const post = await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+        if (!post.ok) return
         const r = await fetch('/api/chat/presence', { cache: 'no-store' })
         if (r.ok) {
           const d = await r.json()
