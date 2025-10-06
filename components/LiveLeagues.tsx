@@ -4,8 +4,15 @@ import { useEffect, useState } from 'react'
 import { TrendingUp } from 'lucide-react'
 
 interface League {
-  league: string
-  key: string
+  league: {
+    id: number
+    name: string
+    logo: string
+  }
+  country: {
+    name: string
+    flag: string
+  }
 }
 
 export default function LiveLeagues() {
@@ -18,8 +25,12 @@ export default function LiveLeagues() {
         const res = await fetch('/api/leagues')
         const data = await res.json()
         console.log('Leagues data:', data)
-        if (data.success && data.result && Array.isArray(data.result)) {
-          setLeagues(data.result.slice(0, 8)) // İlk 8 lig
+        if (data.response && Array.isArray(data.response)) {
+          // Popüler ligleri filtrele
+          const popularLeagues = data.response.filter((item: League) => 
+            ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1', 'Süper Lig', 'Champions League'].includes(item.league.name)
+          )
+          setLeagues(popularLeagues.slice(0, 8))
         }
       } catch (error) {
         console.error('Failed to fetch leagues:', error)
@@ -72,12 +83,12 @@ export default function LiveLeagues() {
             <div className="flex gap-6 animate-scroll">
               {[...leagues, ...leagues].map((league, index) => (
                 <div
-                  key={`${league.key}-${index}`}
+                  key={`${league.league.id}-${index}`}
                   className="flex items-center gap-2 whitespace-nowrap group cursor-pointer"
                 >
                   <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
                   <span className="text-sm text-foreground/70 group-hover:text-green-400 transition-colors">
-                    {league.league}
+                    {league.league.name}
                   </span>
                 </div>
               ))}
