@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type') || 'last' // 'today', 'live' veya 'last'
@@ -30,8 +33,10 @@ export async function GET(request: Request) {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
+        // Her iki başlık türünü gönderelim (bazı ortamlarda biri gerekecek)
         'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': 'v3.football.api-sports.io'
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-apisports-key': apiKey
       },
       cache: 'no-store'
     })
@@ -53,7 +58,8 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'x-rapidapi-key': apiKey,
-          'x-rapidapi-host': 'v3.football.api-sports.io'
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-apisports-key': apiKey
         },
         cache: 'no-store'
       })
@@ -70,7 +76,8 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'x-rapidapi-key': apiKey,
-          'x-rapidapi-host': 'v3.football.api-sports.io'
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-apisports-key': apiKey
         },
         cache: 'no-store'
       })
