@@ -10,6 +10,7 @@ import { useState } from 'react'
 export default function Header() {
   const { data: session, status } = useSession()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' })
@@ -153,10 +154,61 @@ export default function Header() {
             variant="ghost" 
             size="icon" 
             className="md:hidden hover:bg-white/5"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
           >
             <Menu className="h-5 w-5" />
           </Button>
         </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <>
+            <div 
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden" 
+              onClick={() => setShowMobileMenu(false)}
+            ></div>
+            <div className="absolute top-16 left-0 right-0 glass-dark border-b border-white/10 z-50 md:hidden">
+              <nav className="container mx-auto px-4 py-4 flex flex-col space-y-2">
+                <Link href="/" onClick={() => setShowMobileMenu(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
+                    Ana Sayfa
+                  </Button>
+                </Link>
+                <Link href="/kuponlar" onClick={() => setShowMobileMenu(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
+                    <Flame className="h-4 w-4 mr-2 text-orange-500" />
+                    Kuponlar
+                  </Button>
+                </Link>
+                <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
+                    Tahmincilar
+                  </Button>
+                </Link>
+                <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
+                    İstatistikler
+                  </Button>
+                </Link>
+                {!session && (
+                  <>
+                    <div className="border-t border-white/10 my-2"></div>
+                    <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
+                      <Button variant="outline" className="w-full border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400">
+                        Giriş Yap
+                      </Button>
+                    </Link>
+                    <Link href="/kayit" onClick={() => setShowMobileMenu(false)}>
+                      <Button className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold">
+                        Kayıt Ol
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </nav>
+            </div>
+          </>
+        )}
       </div>
     </header>
   )
