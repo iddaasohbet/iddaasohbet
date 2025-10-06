@@ -153,89 +153,43 @@ export default function CanliSkorlarPage() {
           </div>
         </div>
 
-        {/* Matches Grid */}
+        {/* Matches List - Single row style */}
         {loading && fixtures.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
-                <div className="h-24 bg-white/5 rounded-lg mb-4"></div>
-                <div className="h-4 bg-white/5 rounded mb-2"></div>
-                <div className="h-4 bg-white/5 rounded w-2/3"></div>
-              </Card>
+          <div className="space-y-2">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-12 w-full rounded-lg bg-white/5 animate-pulse"></div>
             ))}
           </div>
         ) : fixtures.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fixtures.map((fixture) => (
-              <Card key={fixture.fixture.id} className="glass-dark border-white/10 hover:border-red-500/30 transition-all duration-300 group">
-                <div className="p-6">
-                  {/* Status Badge */}
-                  <div className="flex justify-between items-center mb-4">
-                    {getStatusBadge(fixture.fixture.status.short)}
-                    {fixture.fixture.status.elapsed && (
-                      <span className="text-xs text-red-400 font-semibold">
-                        {fixture.fixture.status.elapsed}'
-                      </span>
-                    )}
+          <Card className="glass-dark border-white/10 overflow-hidden">
+            <div className="divide-y divide-white/10">
+              {fixtures.map((fx) => (
+                <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+                  {/* Status */}
+                  <div className="col-span-2 flex items-center gap-2">
+                    {getStatusBadge(fx.fixture.status.short)}
+                    {fx.fixture.status.elapsed ? (
+                      <span className="text-xs text-red-400 font-semibold">{fx.fixture.status.elapsed}'</span>
+                    ) : null}
                   </div>
-
-                  {/* Match Info */}
-                  <div className="flex flex-col items-center space-y-4">
-                    {/* Home Team */}
-                    <div className="flex items-center gap-3 w-full">
-                      <img 
-                        src={fixture.teams.home.logo} 
-                        alt={fixture.teams.home.name}
-                        className="h-10 w-10 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = 'none' }}
-                      />
-                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
-                        {fixture.teams.home.name}
-                      </p>
-                      <span className="text-2xl font-black text-white">
-                        {fixture.goals.home ?? '-'}
-                      </span>
-                    </div>
-
-                    {/* VS Divider */}
-                    <div className="w-full border-t border-white/10 relative">
-                      <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-3 text-xs text-foreground/40 font-semibold">
-                        VS
-                      </span>
-                    </div>
-
-                    {/* Away Team */}
-                    <div className="flex items-center gap-3 w-full">
-                      <img 
-                        src={fixture.teams.away.logo} 
-                        alt={fixture.teams.away.name}
-                        className="h-10 w-10 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = 'none' }}
-                      />
-                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
-                        {fixture.teams.away.name}
-                      </p>
-                      <span className="text-2xl font-black text-white">
-                        {fixture.goals.away ?? '-'}
-                      </span>
-                    </div>
+                  {/* Home */}
+                  <div className="col-span-4 flex items-center gap-2 min-w-0">
+                    <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    <span className="truncate">{fx.teams.home.name}</span>
                   </div>
-
-                  {/* Match Date */}
-                  <div className="mt-4 pt-4 border-t border-white/10 text-center">
-                    <p className="text-xs text-foreground/60">
-                      {new Date(fixture.fixture.date).toLocaleDateString('tr-TR', {
-                        day: 'numeric',
-                        month: 'long',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+                  {/* Score */}
+                  <div className="col-span-2 text-center font-bold">
+                    {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
+                  </div>
+                  {/* Away */}
+                  <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
+                    <span className="truncate text-right">{fx.teams.away.name}</span>
+                    <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Card>
         ) : (
           <Card className="glass-dark border-white/10 p-12 text-center">
             <div className="flex flex-col items-center space-y-4">
