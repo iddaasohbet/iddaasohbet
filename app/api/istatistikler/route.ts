@@ -51,7 +51,7 @@ export async function GET() {
       select: {
         createdAt: true,
         status: true,
-        odds: true
+        totalOdds: true
       }
     })
 
@@ -180,7 +180,7 @@ export async function GET() {
       liveStats: {
         activeNow: pendingCoupons,
         todayWon: dailyStats[dailyStats.length - 1]?.profit || 0,
-        highestOdds: allCoupons.reduce((max, c) => Math.max(max, c.odds), 0).toFixed(1)
+        highestOdds: allCoupons.reduce((max, c) => Math.max(max, c.totalOdds), 0).toFixed(1)
       }
     })
   } catch (error) {
