@@ -42,6 +42,13 @@ interface Fixture {
       away: number | null
     }
   }
+  events?: Array<{
+    team: {
+      id: number
+    }
+    type: string
+    detail: string
+  }>
 }
 
 export default function CanliSkorlarPage() {
@@ -85,6 +92,37 @@ export default function CanliSkorlarPage() {
       default:
         return <Badge className="bg-white/10 text-white/60">{status}</Badge>
     }
+  }
+
+  const getTeamCards = (fixture: Fixture, teamId: number) => {
+    if (!fixture.events) return null
+    
+    const yellowCards = fixture.events.filter(e => 
+      e.team.id === teamId && e.type === 'Card' && e.detail.includes('Yellow') && !e.detail.includes('Red')
+    ).length
+    
+    const redCards = fixture.events.filter(e => 
+      e.team.id === teamId && e.type === 'Card' && e.detail.includes('Red')
+    ).length
+
+    return (
+      <div className="flex items-center gap-1">
+        {yellowCards > 0 && (
+          <div className="flex items-center gap-0.5">
+            {[...Array(yellowCards)].map((_, i) => (
+              <div key={`y-${i}`} className="w-3 h-4 bg-yellow-400 rounded-sm"></div>
+            ))}
+          </div>
+        )}
+        {redCards > 0 && (
+          <div className="flex items-center gap-0.5">
+            {[...Array(redCards)].map((_, i) => (
+              <div key={`r-${i}`} className="w-3 h-4 bg-red-500 rounded-sm"></div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -177,9 +215,12 @@ export default function CanliSkorlarPage() {
 
                     {/* Home Team */}
                     <div className="flex items-center gap-3 flex-1 justify-end">
-                      <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors text-right">
-                        {fixture.teams.home.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        {getTeamCards(fixture, fixture.teams.home.id)}
+                        <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors text-right">
+                          {fixture.teams.home.name}
+                        </p>
+                      </div>
                       <img 
                         src={fixture.teams.home.logo} 
                         alt={fixture.teams.home.name}
@@ -207,9 +248,12 @@ export default function CanliSkorlarPage() {
                         className="h-10 w-10 object-contain"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
-                      <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
-                        {fixture.teams.away.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
+                          {fixture.teams.away.name}
+                        </p>
+                        {getTeamCards(fixture, fixture.teams.away.id)}
+                      </div>
                     </div>
 
                     {/* League Info */}
