@@ -780,6 +780,99 @@ export default function AdminKuponlarPage() {
                   className="glass-dark border-white/10"
                 />
               </div>
+
+              {/* Matches Section (Edit) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Maçlar ({formData.matches.length})</label>
+                  <Button 
+                    type="button"
+                    size="sm"
+                    onClick={addMatch}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Maç Ekle
+                  </Button>
+                </div>
+
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {formData.matches.map((match, index) => (
+                    <div key={index} className="glass p-4 rounded-lg border border-white/5 space-y-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-blue-400">Maç {index + 1}</span>
+                        {formData.matches.length > 1 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeMatch(index)}
+                            className="h-6 w-6 p-0 hover:bg-red-500/10 hover:text-red-400"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          placeholder="Ev Sahibi"
+                          value={match.team1}
+                          onChange={(e) => updateMatch(index, 'team1', e.target.value)}
+                          className="glass-dark border-white/10 text-sm"
+                        />
+                        <Input
+                          placeholder="Deplasman"
+                          value={match.team2}
+                          onChange={(e) => updateMatch(index, 'team2', e.target.value)}
+                          className="glass-dark border-white/10 text-sm"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          value={match.pick}
+                          onChange={(e) => updateMatch(index, 'pick', e.target.value)}
+                          className="glass-dark border border-white/10 rounded-lg px-3 py-2 text-sm"
+                        >
+                          <option value="">Tahmin Seç</option>
+                          <option value="1">Ev Sahibi (1)</option>
+                          <option value="X">Beraberlik (X)</option>
+                          <option value="2">Deplasman (2)</option>
+                          <option value="1X">1-X</option>
+                          <option value="12">1-2</option>
+                          <option value="X2">X-2</option>
+                          <option value="Alt 2.5">Alt 2.5</option>
+                          <option value="Üst 2.5">Üst 2.5</option>
+                          <option value="KG Var">KG Var</option>
+                          <option value="KG Yok">KG Yok</option>
+                        </select>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Oran"
+                          value={match.odd}
+                          onChange={(e) => updateMatch(index, 'odd', e.target.value)}
+                          className="glass-dark border-white/10 text-sm"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <label className="text-xs text-foreground/60 col-span-1 self-center">Sonuç</label>
+                        <select
+                          value={(match as any).result || 'PENDING'}
+                          onChange={(e) => updateMatch(index, 'result' as any, e.target.value)}
+                          className="glass-dark border border-white/10 rounded-lg px-3 py-2 text-sm col-span-2"
+                        >
+                          <option value="PENDING">Bekliyor</option>
+                          <option value="WON">Kazandı</option>
+                          <option value="LOST">Kaybetti</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
