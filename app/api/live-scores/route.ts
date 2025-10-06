@@ -34,8 +34,12 @@ export async function GET(request: Request) {
 
     const data = await response.json()
     
+    console.log('API Response:', JSON.stringify(data).substring(0, 500))
+    console.log('Results count:', data.results)
+    
     // Eğer bugün maç yoksa veya canlı maç yoksa, son maçları getir
     if ((type === 'today' || type === 'live') && (!data.response || data.response.length === 0)) {
+      console.log('No matches found, fetching last 20...')
       const fallbackUrl = 'https://v3.football.api-sports.io/fixtures?last=20'
       const fallbackResponse = await fetch(fallbackUrl, {
         method: 'GET',
@@ -48,6 +52,7 @@ export async function GET(request: Request) {
       
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json()
+        console.log('Fallback data results:', fallbackData.results)
         return NextResponse.json(fallbackData)
       }
     }
