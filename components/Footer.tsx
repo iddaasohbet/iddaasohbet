@@ -1,4 +1,4 @@
-import { Trophy, Twitter, Instagram, MessageCircle } from 'lucide-react'
+import { Trophy, Twitter, Instagram, MessageCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Footer() {
@@ -87,10 +87,18 @@ export default function Footer() {
               ⚠️ 18 yaş altındaki kişilerin bahis oynamaması gerekmektedir. Kumar bağımlılığı yapabilir. Sorumlu oyun önemlidir.
             </p>
           </div>
-          <div className="mt-6">
-            <p className="text-xs text-center text-foreground/60">
-              Siteyi yapan <a href="https://cihatsoft.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-green-400 underline underline-offset-4">cihatsoft.com</a>
-            </p>
+          <div className="mt-6 flex justify-center">
+            <a
+              href="https://cihatsoft.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Siteyi geliştiren: cihatsoft.com"
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <Sparkles className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform" aria-hidden="true" />
+              <span className="text-xs text-foreground/70">Geliştiren</span>
+              <span className="text-sm font-semibold bg-gradient-to-r from-green-400 to-yellow-400 bg-clip-text text-transparent">cihatsoft.com</span>
+            </a>
           </div>
         </div>
       </div>
