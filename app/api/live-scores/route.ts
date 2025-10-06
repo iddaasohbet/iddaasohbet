@@ -30,8 +30,7 @@ export async function GET(request: Request) {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': 'v3.football.api-sports.io'
+        'x-apisports-key': apiKey
       },
       cache: 'no-store'
     })
@@ -52,8 +51,7 @@ export async function GET(request: Request) {
       const fallbackResponse = await fetch(fallbackUrl, {
         method: 'GET',
         headers: {
-          'x-rapidapi-key': apiKey,
-          'x-rapidapi-host': 'v3.football.api-sports.io'
+          'x-apisports-key': apiKey
         },
         cache: 'no-store'
       })
