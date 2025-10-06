@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
-  HelpCircle,
+  CircleHelp,
   ChevronDown,
   ChevronUp,
   Search,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 const categories = [
-  { id: 'all', name: 'Tümü', icon: HelpCircle, color: 'text-green-400' },
+  { id: 'all', name: 'Tümü', icon: CircleHelp, color: 'text-green-400' },
   { id: 'account', name: 'Hesap', icon: Users, color: 'text-blue-400' },
   { id: 'security', name: 'Güvenlik', icon: Shield, color: 'text-yellow-400' },
   { id: 'coupons', name: 'Kuponlar', icon: Trophy, color: 'text-purple-400' },
@@ -152,7 +152,7 @@ export default function SSSPage() {
         {/* Header */}
         <div className="text-center mb-12 animate-fadeInUp">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <HelpCircle className="h-10 w-10 text-blue-400 animate-pulse" />
+            <CircleHelp className="h-10 w-10 text-blue-400 animate-pulse" />
             <h1 className="text-4xl md:text-5xl font-bold gradient-text">Sıkça Sorulan Sorular</h1>
           </div>
           <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
@@ -254,7 +254,7 @@ export default function SSSPage() {
         {/* Help CTA */}
         <Card className="glass-dark border-white/5 max-w-4xl mx-auto mt-12 animate-fadeInUp">
           <CardContent className="p-8 text-center">
-            <HelpCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
+            <CircleHelp className="h-12 w-12 text-green-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold mb-3 gradient-text">Hala Sorunuz mu Var?</h3>
             <p className="text-foreground/70 mb-6 max-w-lg mx-auto">
               Aradığınız yanıtı bulamadıysanız, destek ekibimiz size yardımcı olmaktan mutluluk duyar.
