@@ -175,7 +175,15 @@ export default function Header() {
           ) : (
             // Giriş yapmamış kullanıcı
             <>
-              <Link href="/giris">
+              <Link href="/sohbet" className="md:hidden">
+                <Button 
+                  variant="ghost" 
+                  className="hover:text-green-400 hover:bg-white/5 transition-all flex items-center gap-1"
+                >
+                  <Radio className="h-4 w-4 text-red-500" /> Canlı Sohbet
+                </Button>
+              </Link>
+              <Link href="/giris" className="hidden md:block">
                 <Button 
                   variant="outline" 
                   className="border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 transition-all"
@@ -183,7 +191,7 @@ export default function Header() {
                   Giriş Yap
                 </Button>
               </Link>
-              <Link href="/kayit">
+              <Link href="/kayit" className="hidden sm:flex">
                 <Button className="hidden sm:flex bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold btn-premium">
                   Kayıt Ol
                 </Button>
