@@ -35,6 +35,7 @@ model User {
   comments      Comment[]
   likes         Like[]
   chatMessages  ChatMessage[]
+  chatPresence  ChatPresence?
   followers     Follow[]  @relation("UserFollowers")
   following     Follow[]  @relation("UserFollowing")
   
