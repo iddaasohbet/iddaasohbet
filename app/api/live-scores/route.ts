@@ -2,18 +2,21 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type') || 'today' // 'today' veya 'live'
+  const type = searchParams.get('type') || 'live'
   
   try {
     let url = 'https://v3.football.api-sports.io/fixtures?'
     
     if (type === 'live') {
-      // Canlı maçlar (tüm dünyadan)
+      // Önce canlı maçları dene
       url += 'live=all'
-    } else {
-      // Bugünün maçları (Süper Lig - league id: 203)
+    } else if (type === 'today') {
+      // Bugünün maçları (Süper Lig)
       const today = new Date().toISOString().split('T')[0]
       url += `league=203&season=2024&date=${today}`
+    } else if (type === 'last') {
+      // Son maçlar (her zaman veri var)
+      url += 'last=20'
     }
 
     const response = await fetch(url, {
@@ -22,20 +25,31 @@ export async function GET(request: Request) {
         'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
         'x-rapidapi-host': 'v3.football.api-sports.io'
       },
-      cache: 'no-store' // Her zaman fresh data
+      cache: 'no-store'
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('API Error:', response.status, errorText)
       throw new Error(`API request failed: ${response.status}`)
     }
 
     const data = await response.json()
     
-    // API response kontrolü
-    if (data.errors && data.errors.length > 0) {
-      console.error('API Errors:', data.errors)
+    // Eğer canlı maç yoksa, son maçları getir
+    if (type === 'live' && (!data.response || data.response.length === 0)) {
+      const fallbackUrl = 'https://v3.football.api-sports.io/fixtures?last=20'
+      const fallbackResponse = await fetch(fallbackUrl, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
+          'x-rapidapi-host': 'v3.football.api-sports.io'
+        },
+        cache: 'no-store'
+      })
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json()
+        return NextResponse.json(fallbackData)
+      }
     }
     
     return NextResponse.json(data)
