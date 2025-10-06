@@ -57,15 +57,21 @@ export default function LiveChatPage() {
 
   useEffect(() => {
     fetchMessages()
+    // İlk girişte hemen heartbeat gönder ve listeyi çek
+    ;(async () => {
+      await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+      const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+      const d = await r.json()
+      setOnline(d.users || [])
+    })()
     const id = setInterval(fetchMessages, 5000)
     const pres = setInterval(async () => {
-      // Heartbeat
       await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
       const r = await fetch('/api/chat/presence', { cache: 'no-store' })
       const d = await r.json()
       setOnline(d.users || [])
     }, 5000)
-    return () => clearInterval(id)
+    return () => { clearInterval(id); clearInterval(pres) }
   }, [])
 
   const send = async () => {
@@ -222,7 +228,11 @@ export default function LiveChatPage() {
                 <Input
                   placeholder="Mesaj yaz... (/kurallar, /yardim)"
                   value={value}
-                  onChange={(e) => setValue(e.target.value)}
+                  onChange={async (e) => {
+                    setValue(e.target.value)
+                    // typing ping
+                    await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: true }) })
+                  }}
                   onKeyDown={(e) => { if (e.key === 'Enter') send() }}
                   className="glass-dark border-white/10"
                 />

@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
-    const { content } = await request.json()
+    const body = await request.json()
+    const { content, channel = 'genel', parentId = null } = body || {}
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
     }
     if (!allowMessage(session.user.id)) {
       return NextResponse.json({ error: 'Çok hızlı gönderiyorsunuz' }, { status: 429 })
     }
-    const { channel = 'genel', parentId = null } = await request.json().catch(() => ({}))
     const text = (content || '').trim().slice(0, 1000)
 
     const ch = await prisma.chatChannel.upsert({
