@@ -33,9 +33,11 @@ export default function LiveChatPage() {
   }, [status])
 
   const fetchMessages = async (opts?: { cursor?: string }) => {
-    const res = await fetch('/api/chat/messages', { cache: 'no-store' })
-    const data = await res.json()
-    setMessages(prev => {
+    try {
+      const res = await fetch('/api/chat/messages', { cache: 'no-store' })
+      if (!res.ok) return { messages: [] }
+      const data = await res.json()
+      setMessages(prev => {
       // İlk yüklemede hoş geldiniz bot mesajını ekle
       if (!didMountRef.current) {
         const welcome: ChatMsg = {
@@ -53,23 +55,34 @@ export default function LiveChatPage() {
       didMountRef.current = true
     }
     return data
+    } catch {
+      return { messages: [] }
+    }
   }
 
   useEffect(() => {
     fetchMessages()
     // İlk girişte hemen heartbeat gönder ve listeyi çek
     ;(async () => {
-      await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
-      const r = await fetch('/api/chat/presence', { cache: 'no-store' })
-      const d = await r.json()
-      setOnline(d.users || [])
+      try {
+        await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+        const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+        if (r.ok) {
+          const d = await r.json()
+          setOnline(d.users || [])
+        }
+      } catch {}
     })()
     const id = setInterval(fetchMessages, 5000)
     const pres = setInterval(async () => {
-      await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
-      const r = await fetch('/api/chat/presence', { cache: 'no-store' })
-      const d = await r.json()
-      setOnline(d.users || [])
+      try {
+        await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+        const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+        if (r.ok) {
+          const d = await r.json()
+          setOnline(d.users || [])
+        }
+      } catch {}
     }, 5000)
     return () => { clearInterval(id); clearInterval(pres) }
   }, [])
