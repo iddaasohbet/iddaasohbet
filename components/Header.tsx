@@ -8,7 +8,7 @@ import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
-import LiveLeagues from './LiveLeagues'
+import LiveScoresTicker from './LiveScoresTicker'
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -412,8 +412,8 @@ export default function Header() {
       {/* No separate backdrop needed; fullscreen menu covers it. */}
     </header>
     
-    {/* Live Leagues Ticker */}
-    <LiveLeagues />
+    {/* Live Scores Ticker */}
+    <LiveScoresTicker />
     </>
   )
 }
