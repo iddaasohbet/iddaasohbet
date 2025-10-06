@@ -49,14 +49,23 @@ export default function CanliSkorlarPage() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
-  const fetchScores = async (type: 'today' | 'live' | 'last' = 'last') => {
+  const fetchScores = async (type: 'today' | 'live' | 'last' = 'live') => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/live-scores?type=${type}`)
+      // Önce istenen tür
+      const res = await fetch(`/api/live-scores?type=${type}`, { cache: 'no-store' })
       const data = await res.json()
-      if (data.response && Array.isArray(data.response)) {
+      if (Array.isArray(data?.response) && data.response.length > 0) {
         setFixtures(data.response)
         setLastUpdate(new Date())
+      } else if (type !== 'last') {
+        // Fallback: son maçlar
+        const resLast = await fetch('/api/live-scores?type=last', { cache: 'no-store' })
+        const dataLast = await resLast.json()
+        if (Array.isArray(dataLast?.response)) {
+          setFixtures(dataLast.response)
+          setLastUpdate(new Date())
+        }
       }
     } catch (error) {
       console.error('Failed to fetch live scores:', error)
@@ -66,9 +75,10 @@ export default function CanliSkorlarPage() {
   }
 
   useEffect(() => {
-    fetchScores('last') // Default olarak son maçlar
-    // Her 2 dakikada bir otomatik güncelle
-    const interval = setInterval(() => fetchScores('last'), 120000)
+    // Varsayılan: canlıyı dene, yoksa last'a düş
+    fetchScores('live')
+    // Her 2 dakikada bir otomatik güncelle (canlı öncelikli)
+    const interval = setInterval(() => fetchScores('live'), 120000)
     return () => clearInterval(interval)
   }, [])
 

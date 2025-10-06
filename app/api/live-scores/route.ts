@@ -63,6 +63,21 @@ export async function GET(request: Request) {
         console.log('Fallback data results:', fallbackData.results)
         return NextResponse.json(fallbackData)
       }
+
+      // Ek fallback: last=50
+      const fallbackUrl50 = 'https://v3.football.api-sports.io/fixtures?last=50&timezone=Europe/Istanbul'
+      const resp50 = await fetch(fallbackUrl50, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': apiKey,
+          'x-rapidapi-host': 'v3.football.api-sports.io'
+        },
+        cache: 'no-store'
+      })
+      if (resp50.ok) {
+        const data50 = await resp50.json()
+        return NextResponse.json(data50)
+      }
     }
     
     return NextResponse.json(data)
