@@ -20,18 +20,9 @@ export default function KuponlarPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/giris')
-    }
-  }, [status, router])
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchCoupons()
-    }
-  }, [filter, page, status])
+    fetchCoupons()
+  }, [filter, page])
 
   const fetchCoupons = async () => {
     setLoading(true)
@@ -82,50 +73,17 @@ export default function KuponlarPage() {
     )
   }
 
-  // Show auth required message
-  if (status === 'unauthenticated') {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <Card className="glass-dark border-white/10 p-12 text-center">
-            <div className="mb-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
-                <Lock className="h-10 w-10 text-green-400" />
-              </div>
-              <h1 className="text-3xl font-bold gradient-text mb-2">Kuponları Görmek İçin Giriş Yapın</h1>
-              <p className="text-foreground/60 text-lg">
-                Kullanıcıların paylaştığı kuponları görebilmek için üye olmanız gerekmektedir.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/giris">
-                <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-8">
-                  Giriş Yap
-                </Button>
-              </Link>
-              <Link href="/kayit">
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-8">
-                  Kayıt Ol
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 relative">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-2">Tüm Kuponlar</h1>
           <p className="text-foreground/60">Kullanıcıların paylaştığı tüm kuponları incele</p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        {/* Filters - Blurred for unauthenticated */}
+        <div className={`flex flex-col md:flex-row gap-4 mb-8 ${status === 'unauthenticated' ? 'blur-sm pointer-events-none' : ''}`}>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground/50" />
             <Input
@@ -185,24 +143,25 @@ export default function KuponlarPage() {
           </div>
         </div>
 
-        {/* Coupons Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
-                <div className="h-32 bg-white/5 rounded-lg mb-4"></div>
-                <div className="h-4 bg-white/5 rounded mb-2"></div>
-                <div className="h-4 bg-white/5 rounded w-2/3"></div>
-              </Card>
-            ))}
-          </div>
-        ) : filteredCoupons.length > 0 ? (
-          <>
+        {/* Coupons Grid - Blurred for unauthenticated */}
+        <div className={status === 'unauthenticated' ? 'blur-md pointer-events-none select-none' : ''}>
+          {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCoupons.map((coupon) => (
-                <CouponCard key={coupon.id} coupon={coupon} />
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
+                  <div className="h-32 bg-white/5 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-white/5 rounded mb-2"></div>
+                  <div className="h-4 bg-white/5 rounded w-2/3"></div>
+                </Card>
               ))}
             </div>
+          ) : filteredCoupons.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCoupons.map((coupon) => (
+                  <CouponCard key={coupon.id} coupon={coupon} />
+                ))}
+              </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -243,6 +202,36 @@ export default function KuponlarPage() {
               </div>
             </div>
           </Card>
+        )}
+        </div>
+
+        {/* Auth Overlay for Unauthenticated Users */}
+        {status === 'unauthenticated' && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 pointer-events-auto">
+            <Card className="glass-dark border-white/10 p-8 max-w-md mx-4 text-center">
+              <div className="mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
+                  <Lock className="h-8 w-8 text-green-400" />
+                </div>
+                <h3 className="text-2xl font-bold gradient-text mb-2">Kuponları Görmek İçin Giriş Yapın</h3>
+                <p className="text-foreground/70">
+                  Kullanıcıların paylaştığı kuponları görebilmek ve detaylarına erişebilmek için üye olun.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/giris">
+                  <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-6">
+                    Giriş Yap
+                  </Button>
+                </Link>
+                <Link href="/kayit">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-6">
+                    Kayıt Ol
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
         )}
       </div>
     </div>
