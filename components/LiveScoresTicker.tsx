@@ -70,15 +70,14 @@ export default function LiveScoresTicker() {
               <div className="flex gap-8 animate-scroll">
                 {[...items, ...items].map((fx, idx) => (
                   <div key={`${fx.fixture.id}-${idx}`} className="flex items-center gap-3 whitespace-nowrap">
-                    <span className={`text-xs px-2 py-0.5 rounded border ${
-                      fx.fixture.status.short === 'FT'
-                        ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                        : fx.fixture.status.short === 'NS'
-                        ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
-                        : 'bg-red-500/10 text-red-400 border-red-500/30'
-                    }`}>
-                      {fx.fixture.status.short}
+                    {/* Live icon + minute */}
+                    <span className="flex items-center gap-1 text-red-400">
+                      <Radio className="h-3 w-3 animate-pulse" />
+                      <span className="text-xs font-semibold">
+                        {fx.fixture.status.elapsed != null ? `${fx.fixture.status.elapsed}'` : 'HT'}
+                      </span>
                     </span>
+                    {/* Pair */}
                     <span className="text-sm text-foreground/70">
                       {fx.teams.home.name.length > 12 ? fx.teams.home.name.substring(0, 12) + '...' : fx.teams.home.name} {fx.goals.home ?? '-'} - {fx.goals.away ?? '-'} {fx.teams.away.name.length > 12 ? fx.teams.away.name.substring(0, 12) + '...' : fx.teams.away.name}
                     </span>
