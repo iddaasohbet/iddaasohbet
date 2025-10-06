@@ -61,12 +61,15 @@ export default function CanliSkorlarPage() {
     try {
       const res = await fetch(`/api/live-scores?type=${type}`)
       const data = await res.json()
-      if (data.response && Array.isArray(data.response)) {
+      if (data.response && Array.isArray(data.response) && data.response.length > 0) {
         setFixtures(data.response)
         setLastUpdate(new Date())
+      } else {
+        setFixtures([])
       }
     } catch (error) {
       console.error('Failed to fetch live scores:', error)
+      setFixtures([])
     } finally {
       setLoading(false)
     }

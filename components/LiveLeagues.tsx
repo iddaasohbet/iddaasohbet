@@ -41,11 +41,15 @@ export default function LiveLeagues() {
       try {
         const res = await fetch('/api/live-scores?type=live')
         const data = await res.json()
-        if (data.response && Array.isArray(data.response)) {
+        if (data.response && Array.isArray(data.response) && data.response.length > 0) {
           setFixtures(data.response.slice(0, 15)) // İlk 15 canlı maç
+        } else {
+          // Canlı maç yoksa boş array
+          setFixtures([])
         }
       } catch (error) {
         console.error('Failed to fetch live matches:', error)
+        setFixtures([])
       } finally {
         setLoading(false)
       }
