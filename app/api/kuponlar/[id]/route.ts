@@ -116,6 +116,8 @@ export async function PUT(
           league: match.league || 'Bilinmeyen',
           category: 'DIGER',
           matchDate: match.matchDate ? new Date(match.matchDate) : new Date(),
+          // Maç sonucu (PENDING/WON/LOST) varsa kaydet
+          status: (match.result || match.status || 'PENDING').toString().toUpperCase(),
         })),
       })
     }
@@ -126,7 +128,8 @@ export async function PUT(
       data: {
         title,
         description,
-        status,
+        // Kupon durumu: formdan küçük harf gelebilir, enum'a normalleştir
+        status: status ? status.toString().toUpperCase() : undefined,
         stake: stake ? parseFloat(stake) : undefined,
         totalOdds: totalOdds ? parseFloat(totalOdds) : undefined,
         potentialWin: potentialWin ? parseFloat(potentialWin) : undefined,
