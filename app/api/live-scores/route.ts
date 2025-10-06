@@ -8,10 +8,10 @@ export async function GET(request: Request) {
     let url = 'https://v3.football.api-sports.io/fixtures?'
     
     if (type === 'live') {
-      // Canlı maçlar
+      // Canlı maçlar (tüm dünyadan)
       url += 'live=all'
     } else {
-      // Bugünün maçları (Süper Lig)
+      // Bugünün maçları (Süper Lig - league id: 203)
       const today = new Date().toISOString().split('T')[0]
       url += `league=203&season=2024&date=${today}`
     }
@@ -22,19 +22,32 @@ export async function GET(request: Request) {
         'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
         'x-rapidapi-host': 'v3.football.api-sports.io'
       },
-      next: { revalidate: 60 } // 60 saniye cache
+      cache: 'no-store' // Her zaman fresh data
     })
 
     if (!response.ok) {
-      throw new Error('API request failed')
+      const errorText = await response.text()
+      console.error('API Error:', response.status, errorText)
+      throw new Error(`API request failed: ${response.status}`)
     }
 
     const data = await response.json()
+    
+    // API response kontrolü
+    if (data.errors && data.errors.length > 0) {
+      console.error('API Errors:', data.errors)
+    }
+    
     return NextResponse.json(data)
   } catch (error) {
     console.error('Live scores API error:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch live scores' },
+      { 
+        success: false, 
+        error: 'Failed to fetch live scores',
+        response: [],
+        results: 0
+      },
       { status: 500 }
     )
   }
