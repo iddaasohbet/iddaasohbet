@@ -1,13 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import CouponCard from '@/components/CouponCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { Search, SlidersHorizontal, TrendingUp, Clock, CheckCircle, XCircle, Trophy } from 'lucide-react'
+import { Search, SlidersHorizontal, TrendingUp, Clock, CheckCircle, XCircle, Trophy, Lock } from 'lucide-react'
+import Link from 'next/link'
 
 export default function KuponlarPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [coupons, setCoupons] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'WON' | 'LOST'>('ALL')
@@ -15,9 +20,18 @@ export default function KuponlarPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
+  // Redirect if not authenticated
   useEffect(() => {
-    fetchCoupons()
-  }, [filter, page])
+    if (status === 'unauthenticated') {
+      router.push('/giris')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchCoupons()
+    }
+  }, [filter, page, status])
 
   const fetchCoupons = async () => {
     setLoading(true)
@@ -55,6 +69,51 @@ export default function KuponlarPage() {
         return title.includes(term) || userName.includes(term)
       })
     : coupons
+
+  // Show loading while checking auth
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-foreground/60">Yükleniyor...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show auth required message
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <Card className="glass-dark border-white/10 p-12 text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
+                <Lock className="h-10 w-10 text-green-400" />
+              </div>
+              <h1 className="text-3xl font-bold gradient-text mb-2">Kuponları Görmek İçin Giriş Yapın</h1>
+              <p className="text-foreground/60 text-lg">
+                Kullanıcıların paylaştığı kuponları görebilmek için üye olmanız gerekmektedir.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/giris">
+                <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-8">
+                  Giriş Yap
+                </Button>
+              </Link>
+              <Link href="/kayit">
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-8">
+                  Kayıt Ol
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen py-12">

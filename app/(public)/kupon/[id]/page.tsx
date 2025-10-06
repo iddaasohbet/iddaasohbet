@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +14,8 @@ import {
   Trophy,
   Calendar,
   ArrowLeft,
-  Eye
+  Eye,
+  Lock
 } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -21,6 +23,7 @@ import KuponInteractions from '@/components/KuponInteractions'
 import KuponComments from '@/components/KuponComments'
 
 export default function KuponDetayPage() {
+  const { data: session, status } = useSession()
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
@@ -29,8 +32,15 @@ export default function KuponDetayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  // Redirect if not authenticated
   useEffect(() => {
-    if (!id) return
+    if (status === 'unauthenticated') {
+      router.push('/giris')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (!id || status !== 'authenticated') return
     
     fetch(`/api/kuponlar/${id}`)
       .then(res => {
@@ -46,14 +56,48 @@ export default function KuponDetayPage() {
         setError(true)
         setLoading(false)
       })
-  }, [id])
+  }, [id, status])
 
-  if (loading) {
+  // Show loading while checking auth
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-12 w-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p className="text-foreground/60">Kupon yükleniyor...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show auth required message
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <Card className="glass-dark border-white/10 p-12 text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
+                <Lock className="h-10 w-10 text-green-400" />
+              </div>
+              <h1 className="text-3xl font-bold gradient-text mb-2">Kupon Detayını Görmek İçin Giriş Yapın</h1>
+              <p className="text-foreground/60 text-lg">
+                Kupon detaylarını görebilmek için üye olmanız gerekmektedir.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/giris">
+                <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-8">
+                  Giriş Yap
+                </Button>
+              </Link>
+              <Link href="/kayit">
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-8">
+                  Kayıt Ol
+                </Button>
+              </Link>
+            </div>
+          </Card>
         </div>
       </div>
     )
