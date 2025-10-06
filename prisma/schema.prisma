@@ -146,13 +146,41 @@ model Like {
   @@unique([userId, couponId])
 }
 
+model ChatChannel {
+  id        String        @id @default(cuid())
+  name      String
+  slug      String        @unique
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+}
+
 model ChatMessage {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId  String
+  channel    ChatChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     ChatMessage?  @relation("MessageReplies", fields: [parentId], references: [id])
+  replies    ChatMessage[] @relation("MessageReplies")
+  content    String        @db.Text
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  reactions  ChatReaction[]
+
+  @@index([channelId, createdAt])
+}
+
+model ChatReaction {
   id        String   @id @default(cuid())
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   String   @db.Text
+  emoji     String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@unique([messageId, userId, emoji])
 }
 
 model ChatPresence {

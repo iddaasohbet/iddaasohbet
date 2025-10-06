@@ -6,18 +6,35 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // GET last 100 messages
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const channel = searchParams.get('channel') || 'genel'
+    const cursor = searchParams.get('cursor')
+    const take = Number(searchParams.get('take') || 50)
+
+    // Ensure channel exists
+    const ch = await prisma.chatChannel.upsert({
+      where: { slug: channel },
+      update: {},
+      create: { slug: channel, name: channel === 'genel' ? 'Genel' : channel }
+    })
+
     const messages = await prisma.chatMessage.findMany({
+      where: { channelId: ch.id },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
-        user: { select: { id: true, username: true, name: true, avatar: true } }
+        user: { select: { id: true, username: true, name: true, avatar: true } },
+        reactions: true,
+        replies: false
       }
     })
-    return NextResponse.json({ messages: messages.reverse() })
+    const nextCursor = messages.length === take ? messages[messages.length - 1].id : null
+    return NextResponse.json({ messages: messages.reverse(), nextCursor, channel: ch })
   } catch (e) {
-    return NextResponse.json({ messages: [] })
+    return NextResponse.json({ messages: [], nextCursor: null })
   }
 }
 
@@ -30,20 +47,29 @@ export async function POST(request: NextRequest) {
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
     }
-    const text = content.trim().slice(0, 1000)
+    const { channel = 'genel', parentId = null } = await request.json().catch(() => ({}))
+    const text = (content || '').trim().slice(0, 1000)
+
+    const ch = await prisma.chatChannel.upsert({
+      where: { slug: channel },
+      update: {},
+      create: { slug: channel, name: channel === 'genel' ? 'Genel' : channel }
+    })
 
     // Simple bot commands
     if (text === '/kurallar' || text === '/yardim') {
       const rules = `Sohbet Kuralları:\n- Saygılı olun, hakaret yok.\n- Spam / reklam yasaktır.\n- Kişisel bilgi paylaşmayın.\nKomutlar: /kurallar, /yardim`
       // create user message then bot reply
-      await prisma.chatMessage.create({ data: { userId: session.user.id, content: text } })
-      const bot = await prisma.chatMessage.create({ data: { userId: session.user.id, content: rules } })
+      await prisma.chatMessage.create({ data: { userId: session.user.id, channelId: ch.id, content: text } })
+      const bot = await prisma.chatMessage.create({ data: { userId: session.user.id, channelId: ch.id, content: rules } })
       return NextResponse.json({ message: bot })
     }
 
     const msg = await prisma.chatMessage.create({
       data: {
         userId: session.user.id,
+        channelId: ch.id,
+        parentId: parentId || undefined,
         content: text
       },
       include: {

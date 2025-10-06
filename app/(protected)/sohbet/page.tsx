@@ -13,6 +13,7 @@ interface ChatMsg {
   content: string
   createdAt: string
   user: { id: string; username: string | null; name: string | null; avatar?: string | null }
+  reactions?: { id: string; emoji: string; userId: string }[]
 }
 
 export default function LiveChatPage() {
@@ -29,7 +30,7 @@ export default function LiveChatPage() {
     if (status === 'unauthenticated') router.push('/giris')
   }, [status])
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (opts?: { cursor?: string }) => {
     const res = await fetch('/api/chat/messages', { cache: 'no-store' })
     const data = await res.json()
     setMessages(prev => {
@@ -147,13 +148,30 @@ export default function LiveChatPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-[60vh] overflow-y-auto p-4 space-y-3">
-                {messages.map(m => {
+              {/* Tarih ayırıcıları ve gruplama basit versiyon */}
+              {messages.map((m, idx) => {
+                const prev = messages[idx - 1]
+                const showDate = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString()
                   const mine = m.user?.id === (session?.user as any)?.id
                   return (
-                    <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                    <div key={m.id}>
+                      {showDate && (
+                        <div className="text-center text-[10px] text-foreground/50 my-2">
+                          {new Date(m.createdAt).toLocaleDateString('tr-TR')}
+                        </div>
+                      )}
+                      <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${m.user?.id === 'bot' ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
                         <div className="text-xs text-foreground/60 mb-1 font-medium">{m.user?.username || m.user?.name || 'Kullanıcı'}</div>
                         <div className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</div>
+                        {m.reactions && m.reactions.length > 0 && (
+                          <div className="flex gap-1 mt-1">
+                            {Object.entries(m.reactions.reduce((acc: Record<string, number>, r) => { acc[r.emoji] = (acc[r.emoji]||0)+1; return acc }, {})).map(([emoji, count]) => (
+                              <span key={emoji} className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 border border-white/10">{emoji} {count}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       </div>
                     </div>
                   )
