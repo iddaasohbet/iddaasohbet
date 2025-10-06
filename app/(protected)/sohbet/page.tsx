@@ -27,6 +27,7 @@ export default function LiveChatPage() {
   const [replyTo, setReplyTo] = useState<ChatMsg | null>(null)
   const [showAdminMenu, setShowAdminMenu] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const didMountRef = useRef(false)
   const prevMsgCountRef = useRef(0)
 
@@ -64,7 +65,10 @@ export default function LiveChatPage() {
         const newMsgs = data.messages || []
         // Yeni mesaj geldi mi kontrol et
         if (newMsgs.length > prevMsgCountRef.current) {
-          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+          setTimeout(() => {
+            const el = listRef.current
+            if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+          }, 100)
         }
         prevMsgCountRef.current = newMsgs.length
         return newMsgs
@@ -186,7 +190,7 @@ export default function LiveChatPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[60vh] overflow-y-auto p-4 space-y-3">
+              <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3">
               {/* Tarih ayırıcıları ve gruplama basit versiyon */}
               {messages.map((m, idx) => {
                 const prev = messages[idx - 1]

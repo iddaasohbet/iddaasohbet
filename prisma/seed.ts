@@ -15,8 +15,8 @@ async function main() {
     update: {},
     create: {
         username: 'admin',
-      email: 'admin@iddaasohbet.com',
-        password: hashedPassword,
+      email: 'admin@gmail.com',
+        password: await bcrypt.hash('admin123', 10),
       name: 'Admin',
         role: 'ADMIN',
         verified: true,
