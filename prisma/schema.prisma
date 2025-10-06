@@ -37,6 +37,10 @@ model User {
   chatMessages  ChatMessage[]
   chatPresence  ChatPresence?
   chatReactions ChatReaction[]
+  bansGiven     UserBan[] @relation("BansGiven")
+  bansReceived  UserBan[] @relation("BansReceived")
+  mutesGiven    UserMute[] @relation("MutesGiven")
+  mutesReceived UserMute[] @relation("MutesReceived")
   followers     Follow[]  @relation("UserFollowers")
   following     Follow[]  @relation("UserFollowing")
   
@@ -232,4 +236,26 @@ enum ApplicationStatus {
   PENDING   // Bekliyor
   APPROVED  // Onaylandı
   REJECTED  // Reddedildi
+}
+
+model UserBan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("BansReceived", fields: [userId], references: [id], onDelete: Cascade)
+  bannedBy  String
+  banner    User     @relation("BansGiven", fields: [bannedBy], references: [id], onDelete: Cascade)
+  reason    String?  @db.Text
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model UserMute {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("MutesReceived", fields: [userId], references: [id], onDelete: Cascade)
+  mutedBy   String
+  muter     User     @relation("MutesGiven", fields: [mutedBy], references: [id], onDelete: Cascade)
+  reason    String?  @db.Text
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

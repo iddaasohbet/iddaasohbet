@@ -25,8 +25,10 @@ export default function LiveChatPage() {
   const [sending, setSending] = useState(false)
   const [online, setOnline] = useState<{id:string; user:{id:string; username:string|null; name:string|null; avatar?:string|null}; typingUntil?:string|null}[]>([])
   const [replyTo, setReplyTo] = useState<ChatMsg | null>(null)
+  const [showAdminMenu, setShowAdminMenu] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const didMountRef = useRef(false)
+  const prevMsgCountRef = useRef(0)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/giris')
@@ -38,23 +40,39 @@ export default function LiveChatPage() {
       if (!res.ok) return { messages: [] }
       const data = await res.json()
       setMessages(prev => {
-      // İlk yüklemede hoş geldiniz bot mesajını ekle
-      if (!didMountRef.current) {
-        const welcome: ChatMsg = {
-          id: 'bot-welcome',
-          content: 'Hoş geldiniz! Ben Sohbet Botu.\nKomutlar: /kurallar, /yardim',
-          createdAt: new Date().toISOString(),
-          user: { id: 'bot', username: 'Sohbet Botu', name: 'Sohbet Botu', avatar: null }
+        // İlk yüklemede hoş geldiniz + admin girişi mesajları
+        if (!didMountRef.current) {
+          const welcome: ChatMsg = {
+            id: 'bot-welcome',
+            content: 'Hoş geldiniz! Ben Sohbet Botu.\nKomutlar: /kurallar, /yardim',
+            createdAt: new Date().toISOString(),
+            user: { id: 'bot', username: 'Sohbet Botu', name: 'Sohbet Botu', avatar: null }
+          }
+          const msgs = [welcome, ...(data.messages || [])]
+          // Admin girişinde özel mesaj
+          if ((session?.user as any)?.role === 'ADMIN') {
+            const adminJoin: ChatMsg = {
+              id: 'admin-join',
+              content: `🛡️ Admin ${(session.user as any)?.username || session.user?.name} sohbete katıldı!`,
+              createdAt: new Date().toISOString(),
+              user: { id: 'system', username: 'Sistem', name: 'Sistem', avatar: null }
+            }
+            msgs.splice(1, 0, adminJoin)
+          }
+          return msgs
         }
-        return [welcome, ...(data.messages || [])]
+        const newMsgs = data.messages || []
+        // Yeni mesaj geldi mi kontrol et
+        if (newMsgs.length > prevMsgCountRef.current) {
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+        }
+        prevMsgCountRef.current = newMsgs.length
+        return newMsgs
+      })
+      if (!didMountRef.current) {
+        didMountRef.current = true
       }
-      return data.messages || []
-    })
-    if (!didMountRef.current) {
-      // İlk girişte otomatik scroll YAPMA
-      didMountRef.current = true
-    }
-    return data
+      return data
     } catch {
       return { messages: [] }
     }
@@ -233,12 +251,22 @@ export default function LiveChatPage() {
                             <Reply className="h-3 w-3" /> Yanıtla
                           </button>
                           {(session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'MODERATOR' ? (
-                            <button
-                              className="text-[11px] px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 flex items-center gap-1 transition-all"
-                              onClick={async () => { await fetch(`/api/chat/moderation?id=${m.id}`, { method: 'DELETE' }); fetchMessages() }}
-                            >
-                              <Trash2 className="h-3 w-3" /> Sil
-                            </button>
+                            <>
+                              <button
+                                className="text-[11px] px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 flex items-center gap-1 transition-all"
+                                onClick={async () => { await fetch(`/api/chat/moderation?id=${m.id}`, { method: 'DELETE' }); fetchMessages() }}
+                              >
+                                <Trash2 className="h-3 w-3" /> Sil
+                              </button>
+                              {!mine && m.user?.id !== 'bot' && m.user?.id !== 'system' && (
+                                <button
+                                  className="text-[11px] px-2 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20 transition-all"
+                                  onClick={() => setShowAdminMenu(m.user.id)}
+                                >
+                                  ⚙️
+                                </button>
+                              )}
+                            </>
                           ) : null}
                         </div>
                         {m.reactions && m.reactions.length > 0 && (
@@ -289,6 +317,53 @@ export default function LiveChatPage() {
           </Card>
         </div>
       </div>
+
+      {/* Admin Menu Modal */}
+      {showAdminMenu && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setShowAdminMenu(null)}>
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-4">Moderasyon</h3>
+            <div className="space-y-3">
+              <button
+                className="w-full px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20 transition-all"
+                onClick={async () => {
+                  await fetch('/api/chat/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mute', userId: showAdminMenu, reason: 'Moderasyon', duration: 10 }) })
+                  alert('Kullanıcı 10 dakika susturuldu')
+                  setShowAdminMenu(null)
+                }}
+              >
+                🔇 10 Dakika Sustur
+              </button>
+              <button
+                className="w-full px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-300 hover:bg-orange-500/20 transition-all"
+                onClick={async () => {
+                  await fetch('/api/chat/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mute', userId: showAdminMenu, reason: 'Moderasyon', duration: 60 }) })
+                  alert('Kullanıcı 1 saat susturuldu')
+                  setShowAdminMenu(null)
+                }}
+              >
+                🔇 1 Saat Sustur
+              </button>
+              <button
+                className="w-full px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 transition-all"
+                onClick={async () => {
+                  await fetch('/api/chat/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ban', userId: showAdminMenu, reason: 'Moderasyon', duration: null }) })
+                  alert('Kullanıcı kalıcı banlandı')
+                  setShowAdminMenu(null)
+                }}
+              >
+                🚫 Kalıcı Banla
+              </button>
+              <button
+                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                onClick={() => setShowAdminMenu(null)}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

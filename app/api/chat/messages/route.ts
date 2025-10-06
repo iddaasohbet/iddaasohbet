@@ -50,6 +50,19 @@ export async function POST(request: NextRequest) {
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
     }
+    
+    // Check ban
+    const ban = await prisma.userBan.findFirst({
+      where: { userId: session.user.id, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }
+    })
+    if (ban) return NextResponse.json({ error: 'Banlısınız' }, { status: 403 })
+    
+    // Check mute
+    const mute = await prisma.userMute.findFirst({
+      where: { userId: session.user.id, expiresAt: { gt: new Date() } }
+    })
+    if (mute) return NextResponse.json({ error: 'Susturuldunuz' }, { status: 403 })
+    
     if (!allowMessage(session.user.id)) {
       return NextResponse.json({ error: 'Çok hızlı gönderiyorsunuz' }, { status: 429 })
     }
