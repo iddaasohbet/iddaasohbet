@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') || 'last' // 'today', 'live' veya 'last'
   
   try {
-    const apiKey = process.env.APIFOOTBALL_KEY || process.env.NEXT_PUBLIC_APIFOOTBALL_KEY || '807916c44ff9ddf5dcaf7cf22109b9cd'
+    const apiKey = '807916c44ff9ddf5dcaf7cf22109b9cd'
     let url = 'https://v3.football.api-sports.io/fixtures?'
     
     if (type === 'live') {
@@ -52,7 +52,8 @@ export async function GET(request: Request) {
       const fallbackResponse = await fetch(fallbackUrl, {
         method: 'GET',
         headers: {
-          'x-apisports-key': apiKey
+          'x-rapidapi-key': apiKey,
+          'x-rapidapi-host': 'v3.football.api-sports.io'
         },
         cache: 'no-store'
       })
