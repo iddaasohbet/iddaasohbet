@@ -25,7 +25,7 @@ import {
   Users, 
   Trophy, 
   Search,
-  Filter,
+  SlidersHorizontal,
   Flame,
   Star,
   BarChart3,
@@ -137,7 +137,7 @@ export default async function TahmincilerPage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button className="bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold btn-premium">
-                <Filter className="h-4 w-4 mr-2" />
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
                 Filtrele
               </Button>
               <Badge className="glass border-green-500/30 text-green-400 hover:bg-green-500/10 cursor-pointer px-4 py-2 text-sm h-auto">

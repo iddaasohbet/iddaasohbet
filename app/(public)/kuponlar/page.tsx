@@ -5,7 +5,7 @@ import CouponCard from '@/components/CouponCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { Search, Filter, TrendingUp, Clock, CheckCircle, XCircle, Trophy } from 'lucide-react'
+import { Search, SlidersHorizontal, TrendingUp, Clock, CheckCircle, XCircle, Trophy } from 'lucide-react'
 
 export default function KuponlarPage() {
   const [coupons, setCoupons] = useState<any[]>([])

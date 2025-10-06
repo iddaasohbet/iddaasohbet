@@ -10,7 +10,7 @@ import {
   Download,
   TrendingUp,
   Calendar,
-  Filter,
+  SlidersHorizontal,
   Plus,
   Eye,
   Trash2,
@@ -317,7 +317,7 @@ export default function AdminRaporlarPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-foreground/60" />
+              <SlidersHorizontal className="h-4 w-4 text-foreground/60" />
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}

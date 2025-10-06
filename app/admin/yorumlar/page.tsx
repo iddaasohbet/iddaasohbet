@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
   Search,
-  Filter,
+  SlidersHorizontal,
   MessageSquare,
   Eye,
   Edit,
@@ -241,7 +241,7 @@ export default function AdminYorumlarPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-foreground/60" />
+              <SlidersHorizontal className="h-4 w-4 text-foreground/60" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
