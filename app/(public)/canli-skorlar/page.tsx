@@ -42,13 +42,6 @@ interface Fixture {
       away: number | null
     }
   }
-  events?: Array<{
-    team: {
-      id: number
-    }
-    type: string
-    detail: string
-  }>
 }
 
 export default function CanliSkorlarPage() {
@@ -56,29 +49,26 @@ export default function CanliSkorlarPage() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
-  const fetchScores = async (type: 'today' | 'live' = 'live') => {
+  const fetchScores = async (type: 'today' | 'live' | 'last' = 'last') => {
     setLoading(true)
     try {
       const res = await fetch(`/api/live-scores?type=${type}`)
       const data = await res.json()
-      if (data.response && Array.isArray(data.response) && data.response.length > 0) {
+      if (data.response && Array.isArray(data.response)) {
         setFixtures(data.response)
         setLastUpdate(new Date())
-      } else {
-        setFixtures([])
       }
     } catch (error) {
       console.error('Failed to fetch live scores:', error)
-      setFixtures([])
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchScores('live') // Default olarak canlı maçlar
-    // Her 1 dakikada bir otomatik güncelle
-    const interval = setInterval(() => fetchScores('live'), 60000)
+    fetchScores('last') // Default olarak son maçlar
+    // Her 2 dakikada bir otomatik güncelle
+    const interval = setInterval(() => fetchScores('last'), 120000)
     return () => clearInterval(interval)
   }, [])
 
@@ -95,37 +85,6 @@ export default function CanliSkorlarPage() {
       default:
         return <Badge className="bg-white/10 text-white/60">{status}</Badge>
     }
-  }
-
-  const getTeamCards = (fixture: Fixture, teamId: number) => {
-    if (!fixture.events) return null
-    
-    const yellowCards = fixture.events.filter(e => 
-      e.team.id === teamId && e.type === 'Card' && e.detail.includes('Yellow') && !e.detail.includes('Red')
-    ).length
-    
-    const redCards = fixture.events.filter(e => 
-      e.team.id === teamId && e.type === 'Card' && e.detail.includes('Red')
-    ).length
-
-    return (
-      <div className="flex items-center gap-1">
-        {yellowCards > 0 && (
-          <div className="flex items-center gap-0.5">
-            {[...Array(yellowCards)].map((_, i) => (
-              <div key={`y-${i}`} className="w-3 h-4 bg-yellow-400 rounded-sm"></div>
-            ))}
-          </div>
-        )}
-        {redCards > 0 && (
-          <div className="flex items-center gap-0.5">
-            {[...Array(redCards)].map((_, i) => (
-              <div key={`r-${i}`} className="w-3 h-4 bg-red-500 rounded-sm"></div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -145,7 +104,7 @@ export default function CanliSkorlarPage() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
               </div>
             </div>
-            <p className="text-foreground/60">Tüm dünyadan canlı maç skorları</p>
+             <p className="text-foreground/60">Tüm dünyadan canlı maç skorları</p>
             <p className="text-sm text-foreground/40 mt-1">
               Son güncelleme: {lastUpdate.toLocaleTimeString('tr-TR')}
             </p>
@@ -179,98 +138,84 @@ export default function CanliSkorlarPage() {
           </div>
         </div>
 
-        {/* Matches List - Alt Alta */}
+        {/* Matches Grid */}
         {loading && fixtures.length === 0 ? (
-          <div className="space-y-4">
-            {[...Array(8)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
               <Card key={i} className="glass-dark border-white/10 p-6 animate-pulse">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-32 bg-white/5 rounded"></div>
-                  <div className="flex-1 h-8 bg-white/5 rounded"></div>
-                  <div className="h-12 w-20 bg-white/5 rounded"></div>
-                  <div className="flex-1 h-8 bg-white/5 rounded"></div>
-                </div>
+                <div className="h-24 bg-white/5 rounded-lg mb-4"></div>
+                <div className="h-4 bg-white/5 rounded mb-2"></div>
+                <div className="h-4 bg-white/5 rounded w-2/3"></div>
               </Card>
             ))}
           </div>
         ) : fixtures.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {fixtures.map((fixture) => (
-              <Card key={fixture.fixture.id} className="glass-dark border-white/10 hover:border-red-500/30 transition-all duration-300 group overflow-hidden">
-                <div className="p-5">
-                  <div className="flex items-center gap-4">
-                    {/* Status & Time */}
-                    <div className="flex flex-col items-center gap-2 min-w-[100px]">
-                      {getStatusBadge(fixture.fixture.status.short)}
-                      {fixture.fixture.status.elapsed ? (
-                        <span className="text-xs text-red-400 font-bold">
-                          {fixture.fixture.status.elapsed}'
-                        </span>
-                      ) : (
-                        <span className="text-xs text-foreground/50">
-                          {new Date(fixture.fixture.date).toLocaleTimeString('tr-TR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      )}
-                    </div>
+              <Card key={fixture.fixture.id} className="glass-dark border-white/10 hover:border-red-500/30 transition-all duration-300 group">
+                <div className="p-6">
+                  {/* Status Badge */}
+                  <div className="flex justify-between items-center mb-4">
+                    {getStatusBadge(fixture.fixture.status.short)}
+                    {fixture.fixture.status.elapsed && (
+                      <span className="text-xs text-red-400 font-semibold">
+                        {fixture.fixture.status.elapsed}'
+                      </span>
+                    )}
+                  </div>
 
+                  {/* Match Info */}
+                  <div className="flex flex-col items-center space-y-4">
                     {/* Home Team */}
-                    <div className="flex items-center gap-3 flex-1 justify-end">
-                      <div className="flex items-center gap-2">
-                        {getTeamCards(fixture, fixture.teams.home.id)}
-                        <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors text-right">
-                          {fixture.teams.home.name}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-3 w-full">
                       <img 
                         src={fixture.teams.home.logo} 
                         alt={fixture.teams.home.name}
                         className="h-10 w-10 object-contain"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
-                    </div>
-
-                    {/* Score */}
-                    <div className="flex items-center gap-2 min-w-[80px] justify-center">
+                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
+                        {fixture.teams.home.name}
+                      </p>
                       <span className="text-2xl font-black text-white">
                         {fixture.goals.home ?? '-'}
                       </span>
-                      <span className="text-foreground/40 font-bold">:</span>
-                      <span className="text-2xl font-black text-white">
-                        {fixture.goals.away ?? '-'}
+                    </div>
+
+                    {/* VS Divider */}
+                    <div className="w-full border-t border-white/10 relative">
+                      <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-3 text-xs text-foreground/40 font-semibold">
+                        VS
                       </span>
                     </div>
 
                     {/* Away Team */}
-                    <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center gap-3 w-full">
                       <img 
                         src={fixture.teams.away.logo} 
                         alt={fixture.teams.away.name}
                         className="h-10 w-10 object-contain"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
-                      <div className="flex items-center gap-2">
-                        <p className="text-base font-bold text-white group-hover:text-green-400 transition-colors">
-                          {fixture.teams.away.name}
-                        </p>
-                        {getTeamCards(fixture, fixture.teams.away.id)}
-                      </div>
-                    </div>
-
-                    {/* League Info */}
-                    <div className="hidden lg:flex items-center gap-2 min-w-[150px]">
-                      <img 
-                        src={fixture.league.logo} 
-                        alt={fixture.league.name}
-                        className="h-6 w-6 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = 'none' }}
-                      />
-                      <span className="text-xs text-foreground/60 truncate">
-                        {fixture.league.name}
+                      <p className="text-lg font-bold text-white group-hover:text-green-400 transition-colors flex-1">
+                        {fixture.teams.away.name}
+                      </p>
+                      <span className="text-2xl font-black text-white">
+                        {fixture.goals.away ?? '-'}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Match Date */}
+                  <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                    <p className="text-xs text-foreground/60">
+                      {new Date(fixture.fixture.date).toLocaleDateString('tr-TR', {
+                        day: 'numeric',
+                        month: 'long',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
                   </div>
                 </div>
               </Card>
@@ -279,11 +224,11 @@ export default function CanliSkorlarPage() {
         ) : (
           <Card className="glass-dark border-white/10 p-12 text-center">
             <div className="flex flex-col items-center space-y-4">
-              <Trophy className="h-16 w-16 text-foreground/30" />
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Şu Anda Canlı Maç Yok</h3>
-                <p className="text-foreground/60">Canlı maç başladığında burada görünecek.</p>
-              </div>
+               <Trophy className="h-16 w-16 text-foreground/30" />
+               <div>
+                 <h3 className="text-xl font-semibold mb-2">Maç Bulunamadı</h3>
+                 <p className="text-foreground/60">Şu anda gösterilecek maç bulunmuyor.</p>
+               </div>
             </div>
           </Card>
         )}
