@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') || 'live' // 'today' veya 'live'
   
   try {
-    const apiKey = '807916c44ff9ddf5dcaf7cf22109b9cd'
+    const apiKey = '303a19f14f12a119e136c61bdf8262ea'
     let url = 'https://v3.football.api-sports.io/fixtures?'
     
     if (type === 'live') {
