@@ -2,18 +2,27 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const league = searchParams.get('league') || '203' // 203 = Süper Lig
-  const date = searchParams.get('date') || new Date().toISOString().split('T')[0] // Bugünün tarihi
-
+  const type = searchParams.get('type') || 'today' // 'today' veya 'live'
+  
   try {
-    // Canlı maçlar için live=all, bugünün maçları için date parametresi
-    const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=${league}&season=2024&date=${date}`, {
+    let url = 'https://v3.football.api-sports.io/fixtures?'
+    
+    if (type === 'live') {
+      // Canlı maçlar
+      url += 'live=all'
+    } else {
+      // Bugünün maçları (Süper Lig)
+      const today = new Date().toISOString().split('T')[0]
+      url += `league=203&season=2024&date=${today}`
+    }
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'x-rapidapi-key': '807916c44ff9ddf5dcaf7cf22109b9cd',
         'x-rapidapi-host': 'v3.football.api-sports.io'
       },
-      cache: 'no-store'
+      next: { revalidate: 60 } // 60 saniye cache
     })
 
     if (!response.ok) {

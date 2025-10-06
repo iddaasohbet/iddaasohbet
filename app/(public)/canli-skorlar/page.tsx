@@ -49,10 +49,10 @@ export default function CanliSkorlarPage() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
-  const fetchScores = async () => {
+  const fetchScores = async (type: 'today' | 'live' = 'today') => {
     setLoading(true)
     try {
-      const res = await fetch('/api/live-scores?league=203')
+      const res = await fetch(`/api/live-scores?type=${type}`)
       const data = await res.json()
       if (data.response && Array.isArray(data.response)) {
         setFixtures(data.response)
@@ -109,14 +109,33 @@ export default function CanliSkorlarPage() {
               Son güncelleme: {lastUpdate.toLocaleTimeString('tr-TR')}
             </p>
           </div>
-          <Button
-            onClick={fetchScores}
-            disabled={loading}
-            className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Yenile
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => fetchScores('today')}
+              disabled={loading}
+              variant="outline"
+              className="border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Bugün
+            </Button>
+            <Button
+              onClick={() => fetchScores('live')}
+              disabled={loading}
+              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
+            >
+              <Radio className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : 'animate-pulse'}`} />
+              Canlı Maçlar
+            </Button>
+            <Button
+              onClick={() => fetchScores('today')}
+              disabled={loading}
+              variant="outline"
+              className="border-white/10 hover:border-blue-500/50"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
 
         {/* Matches Grid */}
