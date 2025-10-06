@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type') || 'live' // 'today', 'live', 'next'
+  const type = searchParams.get('type') || 'live' // 'today' veya 'live'
   
   try {
     const apiKey = '807916c44ff9ddf5dcaf7cf22109b9cd'
@@ -23,9 +23,6 @@ export async function GET(request: Request) {
         day: '2-digit'
       }).format(new Date())
       url += `date=${todayIstanbul}`
-    } else if (type === 'next') {
-      // Yaklaşan maçlar
-      url += 'next=20'
     } else {
       // Varsayılan
       url += 'live=all'
@@ -53,7 +50,7 @@ export async function GET(request: Request) {
     console.log('API Response:', JSON.stringify(data).substring(0, 500))
     console.log('Results count:', data.results)
     
-    // Eğer canlı/yoksa bugün; o da yoksa next
+    // Eğer canlı yoksa bugünü dene
     if ((type === 'today' || type === 'live') && (!data.response || data.response.length === 0)) {
       console.log('No matches found, fetching today...')
       const todayIstanbul = new Intl.DateTimeFormat('en-CA', {
@@ -76,25 +73,7 @@ export async function GET(request: Request) {
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json()
         console.log('Fallback data results:', fallbackData.results)
-        if (fallbackData?.response?.length > 0) {
-          return NextResponse.json(fallbackData)
-        }
-      }
-
-      // Ek fallback: next=20 (yaklaşan maçlar)
-      const nextUrl = 'https://v3.football.api-sports.io/fixtures?next=20&timezone=Europe/Istanbul'
-      const respNext = await fetch(nextUrl, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-key': apiKey,
-          'x-rapidapi-host': 'v3.football.api-sports.io',
-          'x-apisports-key': apiKey
-        },
-        cache: 'no-store'
-      })
-      if (respNext.ok) {
-        const dataNext = await respNext.json()
-        return NextResponse.json(dataNext)
+        return NextResponse.json(fallbackData)
       }
     }
     

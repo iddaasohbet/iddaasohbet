@@ -75,14 +75,11 @@ export default function CanliSkorlarPage() {
   }
 
   useEffect(() => {
-    // Varsayılan: canlıyı dene, yoksa today, yoksa next
+    // Varsayılan: canlıyı dene, yoksa today
     (async () => {
       await fetchScores('live')
       if (fixtures.length === 0) {
         await fetchScores('today')
-      }
-      if (fixtures.length === 0) {
-        await fetchScores('next')
       }
     })()
     // Her 2 dakikada bir otomatik güncelle (canlı öncelikli)

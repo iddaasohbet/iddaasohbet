@@ -32,14 +32,7 @@ export default function LiveScoresTicker() {
         // Bugün deneyelim
         const resToday = await fetch('/api/live-scores?type=today', { cache: 'no-store' })
         const dataToday = await resToday.json()
-        if (Array.isArray(dataToday?.response) && dataToday.response.length > 0) {
-          setItems(dataToday.response)
-        } else {
-          // Yaklaşan maçlar
-          const resNext = await fetch('/api/live-scores?type=next', { cache: 'no-store' })
-          const dataNext = await resNext.json()
-          setItems(Array.isArray(dataNext?.response) ? dataNext.response : [])
-        }
+        setItems(Array.isArray(dataToday?.response) ? dataToday.response : [])
       }
     } catch (e) {
       console.error('Error fetching scores:', e)
