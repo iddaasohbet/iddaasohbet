@@ -1,19 +1,6 @@
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+'use client'
 
-type Predictor = {
-  id: string
-  username: string
-  verified?: boolean
-  name?: string
-  bio?: string
-  winRate: number
-  totalCoupons: number
-  totalProfit: number
-  followers: number
-  rank: number
-}
-
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -34,23 +21,37 @@ import {
   Zap
 } from 'lucide-react'
 
-async function getTahminciData() {
-  try {
-    const res = await fetch(`/api/tahmincilar`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) {
-      return { predictors: [], stats: { totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 } }
-    }
-    return await res.json()
-  } catch (error) {
-    console.error('Tahmincieler fetch error:', error)
-    return { predictors: [], stats: { totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 } }
-  }
+type Predictor = {
+  id: string
+  username: string
+  verified?: boolean
+  name?: string
+  bio?: string
+  winRate: number
+  totalCoupons: number
+  totalProfit: number
+  followers: number
+  rank: number
 }
 
-export default async function TahmincilerPage() {
-  const { predictors: topPredictors, stats } = await getTahminciData()
+export default function TahmincilerPage() {
+  const [topPredictors, setTopPredictors] = useState<Predictor[]>([])
+  const [stats, setStats] = useState({ totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/tahmincilar')
+      .then(res => res.json())
+      .then(data => {
+        setTopPredictors(data.predictors || [])
+        setStats(data.stats || { totalPredictors: 0, avgWinRate: 0, totalCoupons: 0, activePredictors: 0 })
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Tahmincilar yükleme hatası:', err)
+        setLoading(false)
+      })
+  }, [])
   return (
     <div className="min-h-screen py-8 relative">
       {/* Background Pattern */}
