@@ -23,23 +23,23 @@ export default function LiveScoresTicker() {
   const fetchLive = async () => {
     try {
       setLoading(true)
-      // Önce son maçları getir (her zaman veri var)
-      const resLast = await fetch('/api/live-scores?type=last', { cache: 'no-store' })
-      const dataLast = await resLast.json()
-
-      if (Array.isArray(dataLast?.response) && dataLast.response.length > 0) {
-        setItems(dataLast.response)
-      }
-
-      // Sonra canlı maçları kontrol et (background'da)
-      try {
-        const resLive = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
-        const dataLive = await resLive.json()
-        if (Array.isArray(dataLive?.response) && dataLive.response.length > 0) {
-          setItems(dataLive.response) // Canlı varsa onu göster
+      // Önce canlı maçlar
+      const resLive = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
+      const dataLive = await resLive.json()
+      if (Array.isArray(dataLive?.response) && dataLive.response.length > 0) {
+        setItems(dataLive.response)
+      } else {
+        // Bugün deneyelim
+        const resToday = await fetch('/api/live-scores?type=today', { cache: 'no-store' })
+        const dataToday = await resToday.json()
+        if (Array.isArray(dataToday?.response) && dataToday.response.length > 0) {
+          setItems(dataToday.response)
+        } else {
+          // Yaklaşan maçlar
+          const resNext = await fetch('/api/live-scores?type=next', { cache: 'no-store' })
+          const dataNext = await resNext.json()
+          setItems(Array.isArray(dataNext?.response) ? dataNext.response : [])
         }
-      } catch (liveError) {
-        console.log('No live matches found, keeping last matches')
       }
     } catch (e) {
       console.error('Error fetching scores:', e)

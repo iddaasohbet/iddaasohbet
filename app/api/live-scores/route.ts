@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type') || 'last' // 'today', 'live' veya 'last'
+  const type = searchParams.get('type') || 'live' // 'today', 'live', 'next'
   
   try {
     const apiKey = '807916c44ff9ddf5dcaf7cf22109b9cd'
@@ -15,17 +15,20 @@ export async function GET(request: Request) {
       // Canlı maçlar
       url += 'live=all'
     } else if (type === 'today') {
-      // Bugünün maçları (Süper Lig) - Europe/Istanbul zaman dilimine göre
+      // Bugünün maçları (global) - Europe/Istanbul zaman dilimine göre
       const todayIstanbul = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Europe/Istanbul',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
       }).format(new Date())
-      url += `league=203&season=2025&date=${todayIstanbul}`
+      url += `date=${todayIstanbul}`
+    } else if (type === 'next') {
+      // Yaklaşan maçlar
+      url += 'next=20'
     } else {
-      // Son 20 maç (her zaman veri var)
-      url += 'last=20'
+      // Varsayılan
+      url += 'live=all'
     }
     // Zaman dilimi
     url += '&timezone=Europe/Istanbul'
@@ -50,10 +53,16 @@ export async function GET(request: Request) {
     console.log('API Response:', JSON.stringify(data).substring(0, 500))
     console.log('Results count:', data.results)
     
-    // Eğer bugün maç yoksa veya canlı maç yoksa, son maçları getir
+    // Eğer canlı/yoksa bugün; o da yoksa next
     if ((type === 'today' || type === 'live') && (!data.response || data.response.length === 0)) {
-      console.log('No matches found, fetching last 20...')
-      const fallbackUrl = 'https://v3.football.api-sports.io/fixtures?last=20&timezone=Europe/Istanbul'
+      console.log('No matches found, fetching today...')
+      const todayIstanbul = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Istanbul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date())
+      const fallbackUrl = `https://v3.football.api-sports.io/fixtures?date=${todayIstanbul}&timezone=Europe/Istanbul`
       const fallbackResponse = await fetch(fallbackUrl, {
         method: 'GET',
         headers: {
@@ -67,12 +76,14 @@ export async function GET(request: Request) {
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json()
         console.log('Fallback data results:', fallbackData.results)
-        return NextResponse.json(fallbackData)
+        if (fallbackData?.response?.length > 0) {
+          return NextResponse.json(fallbackData)
+        }
       }
 
-      // Ek fallback: last=50
-      const fallbackUrl50 = 'https://v3.football.api-sports.io/fixtures?last=50&timezone=Europe/Istanbul'
-      const resp50 = await fetch(fallbackUrl50, {
+      // Ek fallback: next=20 (yaklaşan maçlar)
+      const nextUrl = 'https://v3.football.api-sports.io/fixtures?next=20&timezone=Europe/Istanbul'
+      const respNext = await fetch(nextUrl, {
         method: 'GET',
         headers: {
           'x-rapidapi-key': apiKey,
@@ -81,9 +92,9 @@ export async function GET(request: Request) {
         },
         cache: 'no-store'
       })
-      if (resp50.ok) {
-        const data50 = await resp50.json()
-        return NextResponse.json(data50)
+      if (respNext.ok) {
+        const dataNext = await respNext.json()
+        return NextResponse.json(dataNext)
       }
     }
     

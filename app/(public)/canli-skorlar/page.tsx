@@ -75,8 +75,16 @@ export default function CanliSkorlarPage() {
   }
 
   useEffect(() => {
-    // Varsayılan: canlıyı dene, yoksa last'a düş
-    fetchScores('live')
+    // Varsayılan: canlıyı dene, yoksa today, yoksa next
+    (async () => {
+      await fetchScores('live')
+      if (fixtures.length === 0) {
+        await fetchScores('today')
+      }
+      if (fixtures.length === 0) {
+        await fetchScores('next')
+      }
+    })()
     // Her 2 dakikada bir otomatik güncelle (canlı öncelikli)
     const interval = setInterval(() => fetchScores('live'), 120000)
     return () => clearInterval(interval)
