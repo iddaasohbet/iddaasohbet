@@ -105,6 +105,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 ⚠️ 18 yaş altındaki kişilerin bahis oynamaması gerekmektedir. Kumar bağımlılığı yapabilir. Sorumlu oyun önemlidir.
               </p>
             </div>
+            <div className="mt-6">
+              <p className="text-xs text-center text-foreground/60">
+                Siteyi yapan <a href="https://cihatsoft.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-green-400 underline underline-offset-4">cihatsoft.com</a>
+              </p>
+            </div>
           </div>
         </div>
       </footer>

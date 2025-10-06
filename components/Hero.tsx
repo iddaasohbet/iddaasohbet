@@ -1,8 +1,16 @@
 import { Button } from '@/components/ui/button'
 import { Trophy, TrendingUp, Users, Zap, ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { prisma } from '@/lib/db'
 
-export default function Hero() {
+export default async function Hero() {
+  // Server-side: fetch last coupon directly from DB for reliability
+  const latestCoupon = await prisma.coupon.findFirst({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      matches: true,
+    },
+  })
   return (
     <section className="relative overflow-hidden py-20 md:py-32 grid-pattern">
       {/* Animated Background Elements */}
@@ -91,44 +99,52 @@ export default function Hero() {
                 </span>
               </div>
               
-              {/* Matches */}
-              <div className="space-y-3 mb-6">
-                {[
-                  { home: 'Fenerbahçe', away: 'Galatasaray', bet: '1', odd: '2.50', league: 'Süper Lig' },
-                  { home: 'Barcelona', away: 'Real Madrid', bet: 'KG VAR', odd: '1.85', league: 'La Liga' },
-                  { home: 'Man City', away: 'Liverpool', bet: 'ÜST 2.5', odd: '1.95', league: 'Premier League' },
-                ].map((match, idx) => (
-                  <div key={idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <p className="font-bold text-sm">{match.home} - {match.away}</p>
-                        <p className="text-xs text-foreground/50">{match.league}</p>
+              {latestCoupon ? (
+                <>
+                  <div className="space-y-3 mb-6">
+                    {(latestCoupon.matches || []).slice(0, 3).map((m: any, idx: number) => (
+                      <div key={m.id || idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="font-bold text-sm">{m.homeTeam} - {m.awayTeam}</p>
+                            <p className="text-xs text-foreground/50">{m.league || 'Genel'}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-green-400">{m.prediction}</p>
+                            <p className="text-lg font-bold text-yellow-400 neon-text-yellow">{Number(m.odds || 0).toFixed(2)}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-400">{match.bet}</p>
-                        <p className="text-lg font-bold text-yellow-400 neon-text-yellow">{match.odd}</p>
+                    ))}
+                  </div>
+
+                  <div className="glass-dark p-4 rounded-xl border border-green-500/20">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-foreground/70">Toplam Oran</span>
+                      <div className="flex items-center space-x-2">
+                        <Trophy className="h-5 w-5 text-yellow-400" />
+                        <span className="text-4xl font-bold gradient-text neon-text-green">{Number((latestCoupon as any).totalOdds || 1).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Total */}
-              <div className="glass-dark p-4 rounded-xl border border-green-500/20">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-foreground/70">Toplam Oran</span>
-                  <div className="flex items-center space-x-2">
-                    <Trophy className="h-5 w-5 text-yellow-400" />
-                    <span className="text-4xl font-bold gradient-text neon-text-green">9.03</span>
-                  </div>
+                  <Link href={`/kupon/${latestCoupon.id}`}>
+                    <Button className="w-full mt-6 bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold h-12 btn-premium">
+                      Kuponu Görüntüle
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <div className="space-y-3 mb-6">
+                  {[...Array(3)].map((_, idx) => (
+                    <div key={idx} className="glass p-4 rounded-xl border border-white/5 animate-pulse">
+                      <div className="h-6 bg-white/5 rounded w-2/3 mb-2"></div>
+                      <div className="h-4 bg-white/5 rounded w-1/3"></div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              {/* Action */}
-              <Button className="w-full mt-6 bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold h-12 btn-premium">
-                Kuponu Görüntüle
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              )}
             </div>
           </div>
         </div>
