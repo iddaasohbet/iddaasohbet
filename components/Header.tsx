@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -15,6 +15,16 @@ export default function Header() {
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' })
   }
+  
+  // Prevent page scroll while mobile drawer is open
+  useEffect(() => {
+    if (showMobileMenu) {
+      document?.body?.classList?.add('overflow-hidden')
+    } else {
+      document?.body?.classList?.remove('overflow-hidden')
+    }
+    return () => document?.body?.classList?.remove('overflow-hidden')
+  }, [showMobileMenu])
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -161,7 +171,7 @@ export default function Header() {
         </div>
 
         {/* Mobile Menu - Slide from Right */}
-        <div className={`fixed top-0 right-0 bottom-0 w-80 bg-[#0a0a0a] border-l border-green-500/20 z-[100] md:hidden shadow-2xl transform transition-transform duration-300 ease-out ${
+        <div className={`fixed top-0 right-0 bottom-0 w-80 bg-slate-900 text-white border-l border-green-500/30 z-[1000] md:hidden shadow-2xl transform transition-transform duration-300 ease-out ${
           showMobileMenu ? 'translate-x-0' : 'translate-x-full'
         }`}>
           <div className="flex flex-col h-full">
@@ -182,7 +192,7 @@ export default function Header() {
                 </Button>
               </div>
               {session && (
-                <div className="flex items-center space-x-3 p-3 glass rounded-lg">
+                <div className="flex items-center space-x-3 p-3 bg-slate-800 rounded-lg">
                   <Avatar className="h-10 w-10 border-2 border-green-500/50">
                     <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
                     <AvatarFallback className="bg-gradient-to-br from-green-500 to-yellow-400 text-black font-bold">
@@ -200,23 +210,23 @@ export default function Header() {
             {/* Navigation Links */}
             <nav className="flex-1 overflow-y-auto p-6 space-y-2">
               <Link href="/" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                   Ana Sayfa
                 </Button>
               </Link>
               <Link href="/kuponlar" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                   <Flame className="h-5 w-5 mr-3 text-orange-500" />
                   Kuponlar
                 </Button>
               </Link>
               <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                   Tahmincilar
                 </Button>
               </Link>
               <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
-                <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                   İstatistikler
                 </Button>
               </Link>
@@ -225,13 +235,13 @@ export default function Header() {
                 <>
                   <div className="border-t border-white/10 my-4"></div>
                   <Link href={`/profil/${session.user?.username}`} onClick={() => setShowMobileMenu(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                    <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                       <User className="h-5 w-5 mr-3" />
                       Profilim
                     </Button>
                   </Link>
                   <Link href="/hesap/ayarlar" onClick={() => setShowMobileMenu(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                    <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                       <Settings className="h-5 w-5 mr-3" />
                       Ayarlar
                     </Button>
@@ -253,7 +263,7 @@ export default function Header() {
               {!session ? (
                 <>
                   <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
-                    <Button variant="outline" className="w-full border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12">
+                    <Button variant="outline" className="w-full border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 text-white/90">
                       Giriş Yap
                     </Button>
                   </Link>
@@ -270,7 +280,7 @@ export default function Header() {
                     handleSignOut()
                   }}
                   variant="outline"
-                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 h-12"
+                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 h-12 text-white/90"
                 >
                   <LogOut className="h-5 w-5 mr-3" />
                   Çıkış Yap
@@ -283,7 +293,7 @@ export default function Header() {
         {/* Mobile Menu Backdrop */}
         {showMobileMenu && (
           <div 
-            className="fixed inset-0 bg-black/80 z-[90] md:hidden" 
+            className="fixed inset-0 bg-black/80 z-[900] md:hidden" 
             onClick={() => setShowMobileMenu(false)}
           ></div>
         )}
