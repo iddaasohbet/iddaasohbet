@@ -234,12 +234,22 @@ export default function AdminKuponlarPage() {
 
   const openEditModal = (coupon: any) => {
     setSelectedCoupon(coupon)
+    const normalizedMatches = Array.isArray(coupon.matches)
+      ? coupon.matches.map((m: any) => ({
+          team1: m.team1 || m.homeTeam || '',
+          team2: m.team2 || m.awayTeam || '',
+          pick: m.pick || m.prediction || '',
+          odd: String(m.odd || m.odds || '1.00'),
+          result: (m.result || m.status || 'PENDING').toString().toUpperCase()
+        }))
+      : [{ team1: '', team2: '', pick: '', odd: '1.00', result: 'PENDING' }]
+
     setFormData({
       title: coupon.title,
       totalOdds: String(coupon.totalOdds),
       stake: String(coupon.stake),
       status: coupon.status,
-      matches: [{ team1: '', team2: '', pick: '', odd: '' }]
+      matches: normalizedMatches
     })
     setShowEditModal(true)
   }
@@ -647,6 +657,20 @@ export default function AdminKuponlarPage() {
                           onChange={(e) => updateMatch(index, 'odd', e.target.value)}
                           className="glass-dark border-white/10 text-sm"
                         />
+                      </div>
+
+                      {/* Maç sonucu: PENDING / WON / LOST */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <label className="text-xs text-foreground/60 col-span-1 self-center">Sonuç</label>
+                        <select
+                          value={(match as any).result || 'PENDING'}
+                          onChange={(e) => updateMatch(index, 'result' as any, e.target.value)}
+                          className="glass-dark border border-white/10 rounded-lg px-3 py-2 text-sm col-span-2"
+                        >
+                          <option value="PENDING">Bekliyor</option>
+                          <option value="WON">Kazandı</option>
+                          <option value="LOST">Kaybetti</option>
+                        </select>
                       </div>
 
                       {match.team1 && match.team2 && match.pick && (
