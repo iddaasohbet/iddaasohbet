@@ -34,6 +34,7 @@ model User {
   coupons       Coupon[]
   comments      Comment[]
   likes         Like[]
+  chatMessages  ChatMessage[]
   followers     Follow[]  @relation("UserFollowers")
   following     Follow[]  @relation("UserFollowing")
   
