@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard } from 'lucide-react'
+import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Header() {
@@ -160,52 +160,130 @@ export default function Header() {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Slide from Right */}
         {showMobileMenu && (
           <>
             <div 
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden" 
+              className="fixed inset-0 bg-black/90 z-40 md:hidden animate-fadeIn" 
               onClick={() => setShowMobileMenu(false)}
             ></div>
-            <div className="absolute top-16 left-0 right-0 glass-dark border-b border-white/10 z-50 md:hidden">
-              <nav className="container mx-auto px-4 py-4 flex flex-col space-y-2">
-                <Link href="/" onClick={() => setShowMobileMenu(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
-                    Ana Sayfa
-                  </Button>
-                </Link>
-                <Link href="/kuponlar" onClick={() => setShowMobileMenu(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
-                    <Flame className="h-4 w-4 mr-2 text-orange-500" />
-                    Kuponlar
-                  </Button>
-                </Link>
-                <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
-                    Tahmincilar
-                  </Button>
-                </Link>
-                <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5">
-                    İstatistikler
-                  </Button>
-                </Link>
-                {!session && (
-                  <>
-                    <div className="border-t border-white/10 my-2"></div>
-                    <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
-                      <Button variant="outline" className="w-full border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400">
-                        Giriş Yap
-                      </Button>
-                    </Link>
-                    <Link href="/kayit" onClick={() => setShowMobileMenu(false)}>
-                      <Button className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold">
-                        Kayıt Ol
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </nav>
+            <div className={`fixed top-0 right-0 bottom-0 w-80 bg-slate-950 border-l border-white/10 z-50 md:hidden shadow-2xl transform transition-transform duration-300 ${
+              showMobileMenu ? 'translate-x-0' : 'translate-x-full'
+            }`}>
+              <div className="flex flex-col h-full">
+                {/* Menu Header */}
+                <div className="p-6 border-b border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Trophy className="h-6 w-6 text-green-400" />
+                      <span className="text-xl font-bold gradient-text">İddaaSohbet</span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => setShowMobileMenu(false)}
+                      className="hover:bg-white/5"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  {session && (
+                    <div className="flex items-center space-x-3 p-3 glass rounded-lg">
+                      <Avatar className="h-10 w-10 border-2 border-green-500/50">
+                        <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
+                        <AvatarFallback className="bg-gradient-to-br from-green-500 to-yellow-400 text-black font-bold">
+                          {session.user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{session.user?.name}</p>
+                        <p className="text-xs text-green-400 truncate">@{session.user?.username}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="flex-1 overflow-y-auto p-6 space-y-2">
+                  <Link href="/" onClick={() => setShowMobileMenu(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                      Ana Sayfa
+                    </Button>
+                  </Link>
+                  <Link href="/kuponlar" onClick={() => setShowMobileMenu(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                      <Flame className="h-5 w-5 mr-3 text-orange-500" />
+                      Kuponlar
+                    </Button>
+                  </Link>
+                  <Link href="/tahmincilar" onClick={() => setShowMobileMenu(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                      Tahmincilar
+                    </Button>
+                  </Link>
+                  <Link href="/istatistikler" onClick={() => setShowMobileMenu(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                      İstatistikler
+                    </Button>
+                  </Link>
+
+                  {session && (
+                    <>
+                      <div className="border-t border-white/10 my-4"></div>
+                      <Link href={`/profil/${session.user?.username}`} onClick={() => setShowMobileMenu(false)}>
+                        <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                          <User className="h-5 w-5 mr-3" />
+                          Profilim
+                        </Button>
+                      </Link>
+                      <Link href="/hesap/ayarlar" onClick={() => setShowMobileMenu(false)}>
+                        <Button variant="ghost" className="w-full justify-start text-foreground/80 hover:text-green-400 hover:bg-white/5 h-12">
+                          <Settings className="h-5 w-5 mr-3" />
+                          Ayarlar
+                        </Button>
+                      </Link>
+                      {session.user?.role === 'ADMIN' && (
+                        <Link href="/admin/dashboard" onClick={() => setShowMobileMenu(false)}>
+                          <Button variant="ghost" className="w-full justify-start text-yellow-400 hover:bg-yellow-400/10 h-12">
+                            <LayoutDashboard className="h-5 w-5 mr-3" />
+                            Admin Panel
+                          </Button>
+                        </Link>
+                      )}
+                    </>
+                  )}
+                </nav>
+
+                {/* Bottom Actions */}
+                <div className="p-6 border-t border-white/10 space-y-3">
+                  {!session ? (
+                    <>
+                      <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
+                        <Button variant="outline" className="w-full border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12">
+                          Giriş Yap
+                        </Button>
+                      </Link>
+                      <Link href="/kayit" onClick={() => setShowMobileMenu(false)}>
+                        <Button className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12">
+                          Kayıt Ol
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        setShowMobileMenu(false)
+                        handleSignOut()
+                      }}
+                      variant="outline"
+                      className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 h-12"
+                    >
+                      <LogOut className="h-5 w-5 mr-3" />
+                      Çıkış Yap
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </>
         )}
