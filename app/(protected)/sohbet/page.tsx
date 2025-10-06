@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Send, Radio } from 'lucide-react'
+import { Send, Radio, Smile, Reply, Trash2 } from 'lucide-react'
 
 interface ChatMsg {
   id: string
@@ -14,6 +14,7 @@ interface ChatMsg {
   createdAt: string
   user: { id: string; username: string | null; name: string | null; avatar?: string | null }
   reactions?: { id: string; emoji: string; userId: string }[]
+  parent?: { id: string; content: string; user: { id: string; username: string | null; name: string | null } } | null
 }
 
 export default function LiveChatPage() {
@@ -23,6 +24,7 @@ export default function LiveChatPage() {
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
   const [online, setOnline] = useState<{id:string; user:{id:string; username:string|null; name:string|null; avatar?:string|null}; typingUntil?:string|null}[]>([])
+  const [replyTo, setReplyTo] = useState<ChatMsg | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const didMountRef = useRef(false)
 
@@ -73,9 +75,10 @@ export default function LiveChatPage() {
       await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: value.trim() })
+        body: JSON.stringify({ content: value.trim(), parentId: replyTo?.id })
       })
       setValue('')
+      setReplyTo(null)
       await fetchMessages()
       // Mesaj gönderince alta kaydır
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -162,8 +165,38 @@ export default function LiveChatPage() {
                       )}
                       <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${m.user?.id === 'bot' ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                          {m.parent && (
+                            <div className="text-[10px] mb-1 px-2 py-1 rounded bg-black/20 border border-white/10">
+                              <span className="text-foreground/50">Yanıtlanan:</span> <span className="text-foreground/80 font-medium">{m.parent.user.username || m.parent.user.name}</span> — {m.parent.content.slice(0, 80)}{m.parent.content.length>80?'…':''}
+                            </div>
+                          )}
                         <div className="text-xs text-foreground/60 mb-1 font-medium">{m.user?.username || m.user?.name || 'Kullanıcı'}</div>
                         <div className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</div>
+                          <div className="flex items-center gap-2 mt-2">
+                            {/* Tepki verme */}
+                            <button
+                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
+                              onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '👍' }) }); fetchMessages() }}
+                            >👍</button>
+                            <button
+                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
+                              onClick={async () => { await fetch('/api/chat/reactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ messageId: m.id, emoji: '🔥' }) }); fetchMessages() }}
+                            >🔥</button>
+                            <button
+                              className="text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10"
+                              onClick={() => setReplyTo(m)}
+                            >
+                              <Reply className="h-3 w-3 inline mr-1" /> Yanıtla
+                            </button>
+                            {(session?.user as any)?.role === 'ADMIN' || (session?.user as any)?.role === 'MODERATOR' ? (
+                              <button
+                                className="text-[11px] px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20"
+                                onClick={async () => { await fetch(`/api/chat/moderation?id=${m.id}`, { method: 'DELETE' }); fetchMessages() }}
+                              >
+                                <Trash2 className="h-3 w-3 inline mr-1" /> Sil
+                              </button>
+                            ) : null}
+                          </div>
                         {m.reactions && m.reactions.length > 0 && (
                           <div className="flex gap-1 mt-1">
                             {Object.entries(m.reactions.reduce((acc: Record<string, number>, r) => { acc[r.emoji] = (acc[r.emoji]||0)+1; return acc }, {})).map(([emoji, count]) => (
@@ -179,6 +212,13 @@ export default function LiveChatPage() {
                 <div ref={bottomRef} />
               </div>
               <div className="p-4 border-t border-white/5 flex gap-2">
+                {replyTo && (
+                  <div className="absolute -mt-10 left-4 right-44 text-[11px] px-2 py-1 rounded bg-white/5 border border-white/10">
+                    <span className="text-foreground/60 mr-2">Yanıtlıyor:</span>
+                    <span className="text-foreground/80 font-medium">{replyTo.user.username || replyTo.user.name}</span> — {replyTo.content.slice(0, 80)}{replyTo.content.length>80?'…':''}
+                    <button className="ml-2 text-foreground/50 hover:text-foreground/80" onClick={() => setReplyTo(null)}>Kapat</button>
+                  </div>
+                )}
                 <Input
                   placeholder="Mesaj yaz... (/kurallar, /yardim)"
                   value={value}

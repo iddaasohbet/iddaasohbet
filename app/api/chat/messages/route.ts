@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
+import { allowMessage } from './ratelimit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
         user: { select: { id: true, username: true, name: true, avatar: true } },
+        parent: { select: { id: true, content: true, user: { select: { id: true, username: true, name: true } } } },
         reactions: true,
         replies: false
       }
@@ -46,6 +48,9 @@ export async function POST(request: NextRequest) {
     const { content } = await request.json()
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
+    }
+    if (!allowMessage(session.user.id)) {
+      return NextResponse.json({ error: 'Çok hızlı gönderiyorsunuz' }, { status: 429 })
     }
     const { channel = 'genel', parentId = null } = await request.json().catch(() => ({}))
     const text = (content || '').trim().slice(0, 1000)
