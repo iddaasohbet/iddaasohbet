@@ -23,18 +23,26 @@ export default function LiveScoresTicker() {
   const fetchLive = async () => {
     try {
       setLoading(true)
-      // Önce canlı maçlar
-      const res = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
-      const data = await res.json()
-      if (Array.isArray(data?.response) && data.response.length > 0) {
-        setItems(data.response)
-      } else {
-        // Fallback: son maçlar (boş kalmasın)
-        const resLast = await fetch('/api/live-scores?type=last', { cache: 'no-store' })
-        const dataLast = await resLast.json()
-        setItems(Array.isArray(dataLast?.response) ? dataLast.response : [])
+      // Önce son maçları getir (her zaman veri var)
+      const resLast = await fetch('/api/live-scores?type=last', { cache: 'no-store' })
+      const dataLast = await resLast.json()
+
+      if (Array.isArray(dataLast?.response) && dataLast.response.length > 0) {
+        setItems(dataLast.response)
+      }
+
+      // Sonra canlı maçları kontrol et (background'da)
+      try {
+        const resLive = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
+        const dataLive = await resLive.json()
+        if (Array.isArray(dataLive?.response) && dataLive.response.length > 0) {
+          setItems(dataLive.response) // Canlı varsa onu göster
+        }
+      } catch (liveError) {
+        console.log('No live matches found, keeping last matches')
       }
     } catch (e) {
+      console.error('Error fetching scores:', e)
       setItems([])
     } finally {
       setLoading(false)
@@ -84,7 +92,7 @@ export default function LiveScoresTicker() {
                       {fx.fixture.status.short}
                     </span>
                     <span className="text-sm text-foreground/70">
-                      {fx.teams.home.name} {fx.goals.home ?? '-'} - {fx.goals.away ?? '-'} {fx.teams.away.name}
+                      {fx.teams.home.name.length > 12 ? fx.teams.home.name.substring(0, 12) + '...' : fx.teams.home.name} {fx.goals.home ?? '-'} - {fx.goals.away ?? '-'} {fx.teams.away.name.length > 12 ? fx.teams.away.name.substring(0, 12) + '...' : fx.teams.away.name}
                     </span>
                   </div>
                 ))}
