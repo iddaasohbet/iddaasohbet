@@ -171,12 +171,12 @@ export default function Header() {
         </div>
 
         {/* Mobile Menu - Slide from Right */}
-        <div className={`fixed top-0 right-0 bottom-0 w-80 bg-slate-900 text-white border-l border-green-500/30 z-[1000] md:hidden shadow-2xl transform transition-transform duration-300 ease-out ${
+        <div className={`fixed top-0 right-0 bottom-0 w-[92vw] max-w-[420px] bg-neutral-950 text-white border-l border-green-500/30 ring-1 ring-white/10 z-[9999] md:hidden shadow-2xl transform transition-transform duration-300 ease-out ${
           showMobileMenu ? 'translate-x-0' : 'translate-x-full'
         }`}>
           <div className="flex flex-col h-full">
             {/* Menu Header */}
-            <div className="p-6 border-b border-white/10">
+            <div className="p-6 border-b border-white/10 bg-neutral-950">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   <Trophy className="h-6 w-6 text-green-400" />
@@ -208,7 +208,7 @@ export default function Header() {
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex-1 overflow-y-auto p-6 space-y-2">
+            <nav className="flex-1 overflow-y-auto p-6 space-y-2 bg-neutral-950">
               <Link href="/" onClick={() => setShowMobileMenu(false)}>
                 <Button variant="ghost" className="w-full justify-start text-white/90 hover:text-green-400 hover:bg-white/5 h-12">
                   Ana Sayfa
@@ -259,7 +259,7 @@ export default function Header() {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="p-6 border-t border-white/10 space-y-3">
+            <div className="p-6 border-t border-white/10 space-y-3 bg-neutral-950">
               {!session ? (
                 <>
                   <Link href="/giris" onClick={() => setShowMobileMenu(false)}>
@@ -293,7 +293,7 @@ export default function Header() {
         {/* Mobile Menu Backdrop */}
         {showMobileMenu && (
           <div 
-            className="fixed inset-0 bg-black/80 z-[900] md:hidden" 
+            className="fixed inset-0 bg-black/90 backdrop-blur-0 z-[900] md:hidden" 
             onClick={() => setShowMobileMenu(false)}
           ></div>
         )}
