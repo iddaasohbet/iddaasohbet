@@ -8,6 +8,7 @@ import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
+import LiveLeagues from './LiveLeagues'
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -31,6 +32,7 @@ export default function Header() {
   }, [showMobileMenu])
   useEffect(() => { setIsMounted(true) }, [])
   return (
+    <>
     <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo with Neon Effect */}
@@ -409,5 +411,9 @@ export default function Header() {
 
       {/* No separate backdrop needed; fullscreen menu covers it. */}
     </header>
+    
+    {/* Live Leagues Ticker */}
+    <LiveLeagues />
+    </>
   )
 }
