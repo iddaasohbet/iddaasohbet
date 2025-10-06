@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Send, Radio, Smile, Reply, Trash2 } from 'lucide-react'
+import { Send, Radio, Smile, Reply, Trash2, Shield } from 'lucide-react'
 
 interface ChatMsg {
   id: string
@@ -142,11 +142,14 @@ export default function LiveChatPage() {
               <div className="max-h-[65vh] overflow-y-auto p-3 space-y-2">
                 {online.map((o) => (
                   <div key={o.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
-                    <div className="relative h-2 w-2">
-                      <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-60"></span>
-                      <span className="relative block h-2 w-2 rounded-full bg-green-500"></span>
+                    <div className={`relative h-2 w-2 ${o.user?.role === 'ADMIN' ? 'bg-amber-400 rounded-full' : ''}`}>
+                      {o.user?.role !== 'ADMIN' && <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-60"></span>}
+                      <span className={`relative block h-2 w-2 rounded-full ${o.user?.role === 'ADMIN' ? 'bg-amber-400' : 'bg-green-500'}`}></span>
                     </div>
-                    <span className="text-sm truncate">{o.user?.username || o.user?.name || 'Kullanıcı'}</span>
+                    <span className={`text-sm truncate flex items-center gap-1 ${o.user?.role === 'ADMIN' ? 'text-amber-300 font-semibold' : ''}`}>
+                      {o.user?.role === 'ADMIN' && <Shield className="h-3 w-3" />}
+                      {o.user?.username || o.user?.name || 'Kullanıcı'}
+                    </span>
                     {o.typingUntil && new Date(o.typingUntil) > new Date() ? (
                       <span className="ml-auto text-[10px] text-foreground/50">yazıyor…</span>
                     ) : null}
@@ -207,7 +210,7 @@ export default function LiveChatPage() {
                     <div className={`flex gap-3 ${mine ? 'justify-end' : 'justify-start'} group`}>
                       {!mine && !isBot && (
                         <div className="flex-shrink-0 mt-1">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-yellow-400 flex items-center justify-center text-black font-bold text-xs">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-black font-bold text-xs ${m.user && (m.user as any).role === 'ADMIN' ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-2 ring-amber-300 shadow-amber-500/30 shadow-lg' : 'bg-gradient-to-br from-green-500 to-yellow-400'}`}>
                             {(m.user?.username || m.user?.name || 'U').charAt(0).toUpperCase()}
                           </div>
                         </div>
@@ -219,7 +222,7 @@ export default function LiveChatPage() {
                           </div>
                         </div>
                       )}
-                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg ${isBot ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40' : 'bg-white/5 border border-white/10 backdrop-blur-sm'}`}>
+                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg ${isBot ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40' : (m.user && (m.user as any).role === 'ADMIN') ? 'bg-amber-500/10 border border-amber-400/40 backdrop-blur-sm' : 'bg-white/5 border border-white/10 backdrop-blur-sm'}`}>
                         {m.parent && (
                           <div className="text-[10px] mb-2 px-2 py-1.5 rounded-lg bg-black/30 border border-white/10">
                             <div className="flex items-center gap-1 mb-0.5">
@@ -230,7 +233,10 @@ export default function LiveChatPage() {
                           </div>
                         )}
                         {!mine && !isBot && (
-                          <div className="text-xs text-foreground/60 mb-1.5 font-semibold">{m.user?.username || m.user?.name || 'Kullanıcı'}</div>
+                          <div className={`text-xs mb-1.5 font-semibold flex items-center gap-1 ${m.user && (m.user as any).role === 'ADMIN' ? 'text-amber-300' : 'text-foreground/60'}`}>
+                            {m.user && (m.user as any).role === 'ADMIN' && <Shield className="h-3 w-3" />}
+                            {m.user?.username || m.user?.name || 'Kullanıcı'}
+                          </div>
                         )}
                         {isBot && (
                           <div className="text-xs text-purple-400 mb-1.5 font-semibold flex items-center gap-1">

@@ -30,7 +30,7 @@ export async function GET() {
     const d = new Date(Date.now() - 60 * 1000)
     const list = await prisma.chatPresence.findMany({
       where: { lastActive: { gt: d } },
-      include: { user: { select: { id: true, username: true, name: true, avatar: true } } },
+      include: { user: { select: { id: true, username: true, name: true, avatar: true, role: true } } },
       orderBy: { lastActive: 'desc' }
     })
     return NextResponse.json({ users: list })

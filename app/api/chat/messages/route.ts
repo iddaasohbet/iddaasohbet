@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       take,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
-        user: { select: { id: true, username: true, name: true, avatar: true } },
+        user: { select: { id: true, username: true, name: true, avatar: true, role: true } },
         parent: { select: { id: true, content: true, user: { select: { id: true, username: true, name: true } } } },
         reactions: true,
         replies: false
