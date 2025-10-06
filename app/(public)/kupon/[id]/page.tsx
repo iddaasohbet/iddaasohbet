@@ -196,7 +196,7 @@ export default function KuponDetayPage() {
                 Maçlar ({coupon.matches.length})
               </h3>
               <div className="space-y-3">
-                {coupon.matches.map((match, index) => (
+                {coupon.matches.map((match: any, index: number) => (
                   <Card key={match.id} className="glass border-white/10">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -210,12 +210,12 @@ export default function KuponDetayPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="font-semibold">{match.team1} vs {match.team2}</p>
-                          <p className="text-sm text-green-400 mt-1">Tahmin: {match.pick}</p>
+                          <p className="font-semibold">{match.homeTeam} vs {match.awayTeam}</p>
+                          <p className="text-sm text-green-400 mt-1">Tahmin: {match.prediction}</p>
                         </div>
                         <div className="text-right">
                           <Badge className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-bold">
-                            {match.odd.toFixed(2)}
+                            {Number(match.odds).toFixed(2)}
                           </Badge>
                         </div>
                       </div>
