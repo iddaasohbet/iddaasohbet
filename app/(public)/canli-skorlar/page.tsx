@@ -285,34 +285,28 @@ export default function CanliSkorlarPage() {
                 return (
                 <div
                   key={fx.fixture.id}
-                  className={`group flex items-center justify-between px-3 py-2 hover:bg-white/5 transition border-b border-white/5 ${isHighlighted ? 'goal-blink' : ''}`}
+                  className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition ${isHighlighted ? 'goal-blink' : ''}`}
                 >
-                  {/* League + minute */}
-                  <div className="flex items-center gap-3 min-w-[140px]">
+                  {/* Status */}
+                  <div className="col-span-2 flex items-center gap-2">
                     {getStatusBadge(fx.fixture.status.short)}
-                    {fx.fixture.status.elapsed != null && (
-                      <span className="text-[11px] px-2 py-0.5 rounded bg-red-500/15 text-red-300 border border-red-500/30">{fx.fixture.status.elapsed}'</span>
-                    )}
+                    {fx.fixture.status.elapsed ? (
+                      <span className="text-xs text-red-400 font-semibold">{fx.fixture.status.elapsed}'</span>
+                    ) : null}
                   </div>
-                  {/* Teams + score */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-4 w-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                      <span className="truncate font-medium">{fx.teams.home.name}</span>
-                    </div>
-                    <div className={`text-lg font-bold tabular-nums ${isHighlighted ? 'score-blink' : 'text-white'}`}>
-                      {(fx.goals.home ?? '-')}
-                      <span className="mx-1 text-foreground/60">-</span>
-                      {(fx.goals.away ?? '-')}
-                    </div>
-                    <div className="flex items-center gap-2 min-w-0 justify-end">
-                      <span className="truncate text-right font-medium">{fx.teams.away.name}</span>
-                      <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-4 w-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                    </div>
+                  {/* Home */}
+                  <div className="col-span-4 flex items-center gap-2 min-w-0">
+                    <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    <span className="truncate">{fx.teams.home.name}</span>
                   </div>
-                  {/* Actions */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-[10px] px-2 py-1 rounded border border-white/10 hover:border-yellow-400/40">★</button>
+                  {/* Score */}
+                  <div className={`col-span-2 text-center font-bold ${isHighlighted ? 'score-blink' : ''}`}>
+                    {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
+                  </div>
+                  {/* Away */}
+                  <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
+                    <span className="truncate text-right">{fx.teams.away.name}</span>
+                    <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </div>
                 </div>
                 )})}
@@ -371,42 +365,42 @@ export default function CanliSkorlarPage() {
 
           <TabsContent value="ft">
             {todayFixtures.filter((f) => f.fixture.status.short === 'FT').length > 0 ? (
-          <Card className="glass-dark border-white/10 overflow-hidden">
-            <div className="divide-y divide-white/10">
+            <Card className="glass-dark border-white/10 overflow-hidden">
+              <div className="divide-y divide-white/10">
                 {todayFixtures.filter((f) => f.fixture.status.short === 'FT').map((fx) => (
                   <div
                     key={fx.fixture.id}
                     className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition"
                   >
-                  <div className="col-span-2 flex items-center gap-2">
-                    {getStatusBadge(fx.fixture.status.short)}
+                    <div className="col-span-2 flex items-center gap-2">
+                      {getStatusBadge(fx.fixture.status.short)}
+                    </div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0">
+                      <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                      <span className="truncate">{fx.teams.home.name}</span>
+                    </div>
+                    <div className="col-span-2 text-center font-bold">
+                      {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
+                    </div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
+                      <span className="truncate text-right">{fx.teams.away.name}</span>
+                      <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    </div>
                   </div>
-                  <div className="col-span-4 flex items-center gap-2 min-w-0">
-                    <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                    <span className="truncate">{fx.teams.home.name}</span>
-                  </div>
-                  <div className="col-span-2 text-center font-bold">
-                    {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
-                  </div>
-                  <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
-                    <span className="truncate text-right">{fx.teams.away.name}</span>
-                    <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        ) : (
-          <Card className="glass-dark border-white/10 p-12 text-center">
-            <div className="flex flex-col items-center space-y-4">
-               <Trophy className="h-16 w-16 text-foreground/30" />
-               <div>
+                ))}
+              </div>
+            </Card>
+            ) : (
+              <Card className="glass-dark border-white/10 p-12 text-center">
+                <div className="flex flex-col items-center space-y-4">
+                   <Trophy className="h-16 w-16 text-foreground/30" />
+                   <div>
                      <h3 className="text-xl font-semibold mb-2">Bitmiş Maç Bulunamadı</h3>
                      <p className="text-foreground/60">Bugün için bitmiş maç yok.</p>
-               </div>
-            </div>
-          </Card>
-        )}
+                   </div>
+                </div>
+              </Card>
+            )}
           </TabsContent>
           </>
           )}
