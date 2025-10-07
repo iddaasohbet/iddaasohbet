@@ -222,12 +222,6 @@ export default function CanliSkorlarPage() {
     }
   }
 
-  const isFinished = (short: string | undefined) => {
-    if (!short) return false
-    const finishedSet = new Set(['FT', 'AET', 'PEN', 'FT_PEN', 'FT_AET'])
-    return finishedSet.has(short)
-  }
-
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4">
@@ -370,10 +364,10 @@ export default function CanliSkorlarPage() {
           </TabsContent>
 
           <TabsContent value="ft">
-            {todayFixtures.filter((f) => isFinished(f.fixture.status.short)).length > 0 ? (
+            {todayFixtures.filter((f) => f.fixture.status.short === 'FT').length > 0 ? (
             <Card className="glass-dark border-white/10 overflow-hidden">
               <div className="divide-y divide-white/10">
-                {todayFixtures.filter((f) => isFinished(f.fixture.status.short)).map((fx) => (
+                {todayFixtures.filter((f) => f.fixture.status.short === 'FT').map((fx) => (
                   <div
                     key={fx.fixture.id}
                     className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition"
