@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/goal-bot/tick", "schedule": "*/1 * * * *" }
+  ]
+}
+
+
