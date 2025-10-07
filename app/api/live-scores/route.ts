@@ -5,26 +5,23 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type') || 'live' // 'today' veya 'live'
+  const type = searchParams.get('type') || 'live' // 'today' | 'live' | 'range'
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
   
   try {
     const apiKey = '303a19f14f12a119e136c61bdf8262ea'
     let url = 'https://v3.football.api-sports.io/fixtures?'
-    
     if (type === 'live') {
-      // Canlı maçlar
       url += 'live=all'
     } else if (type === 'today') {
-      // Bugünün maçları (global) - Europe/Istanbul zaman dilimine göre
       const todayIstanbul = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Europe/Istanbul',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
+        timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit'
       }).format(new Date())
       url += `date=${todayIstanbul}`
+    } else if (type === 'range' && from && to) {
+      url += `from=${from}&to=${to}`
     } else {
-      // Varsayılan
       url += 'live=all'
     }
     // Zaman dilimi
