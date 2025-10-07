@@ -138,19 +138,15 @@ export default function CanliSkorlarPage() {
             recentGoalsRef.current.set(id, nowTs)
           }
           nextScores.set(id, sum)
-          // snapshot elapsed per fixture
+          // snapshot elapsed per fixture (refresh every fetch to stay in sync)
           const el = typeof fx.fixture.status.elapsed === 'number' ? fx.fixture.status.elapsed : null
           if (el != null) {
-            const prev = elapsedSnapshotRef.current.get(id)
             const phase = fx.fixture.status.short
-            // Only refresh the snapshot when server elapsed advanced or phase changed
-            if (!prev || phase !== prev.phase || el > prev.elapsed) {
-              elapsedSnapshotRef.current.set(id, {
-                elapsed: el,
-                seenAt: nowTs,
-                phase,
-              })
-            }
+            elapsedSnapshotRef.current.set(id, {
+              elapsed: el,
+              seenAt: nowTs,
+              phase,
+            })
           }
         }
 
@@ -261,21 +257,15 @@ export default function CanliSkorlarPage() {
     const livePhases = new Set(['1H', '2H', 'ET', 'LIVE'])
     if (!livePhases.has(phase)) return base
     
-    // Compute real-time elapsed from fixture kickoff time
-    try {
-      const kickoffMs = new Date(fx.fixture.date).getTime()
-      const nowMs = Date.now()
-      const realElapsedSec = Math.floor((nowMs - kickoffMs) / 1000)
-      const realElapsedMin = Math.floor(realElapsedSec / 60)
-      
-      // Cap reasonable ranges (0–120 for normal + extra time)
-      if (realElapsedMin >= 0 && realElapsedMin <= 120) {
-        return realElapsedMin
-      }
-    } catch {
-      // fallback to server elapsed
+    // Use per-fixture snapshot: API's elapsed + time since last fetch
+    const snap = elapsedSnapshotRef.current.get(fx.fixture.id)
+    if (snap && typeof snap.elapsed === 'number' && snap.phase === phase) {
+      const deltaSec = Math.max(0, Math.floor((Date.now() - snap.seenAt) / 1000))
+      const addMin = Math.floor(deltaSec / 60)
+      return snap.elapsed + addMin
     }
     
+    // Fallback: if no snapshot yet, return server elapsed
     return base
   }
 
