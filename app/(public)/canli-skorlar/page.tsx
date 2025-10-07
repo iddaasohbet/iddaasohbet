@@ -16,6 +16,7 @@ interface Fixture {
       long: string
       short: string
       elapsed: number | null
+      extra?: number | null
     }
   }
   teams: {
@@ -251,22 +252,32 @@ export default function CanliSkorlarPage() {
 
   // kickoff time chip removed for stability; will re-add after QA
 
-  const getDisplayedElapsed = (fx: Fixture): number | null => {
+  const getDisplayedElapsed = (fx: Fixture): { elapsed: number; extra?: number } | null => {
     const phase = fx?.fixture?.status?.short
     const base = typeof fx?.fixture?.status?.elapsed === 'number' ? fx.fixture.status.elapsed : null
+    const extra = typeof fx?.fixture?.status?.extra === 'number' ? fx.fixture.status.extra : null
     const livePhases = new Set(['1H', '2H', 'ET', 'LIVE'])
-    if (!livePhases.has(phase)) return base
+    if (!livePhases.has(phase)) return base != null ? { elapsed: base, extra: extra ?? undefined } : null
     
     // Use per-fixture snapshot: API's elapsed + time since last fetch
     const snap = elapsedSnapshotRef.current.get(fx.fixture.id)
     if (snap && typeof snap.elapsed === 'number' && snap.phase === phase) {
       const deltaSec = Math.max(0, Math.floor((Date.now() - snap.seenAt) / 1000))
       const addMin = Math.floor(deltaSec / 60)
-      return snap.elapsed + addMin
+      const computedElapsed = snap.elapsed + addMin
+      
+      // If extra time exists, return both
+      if (extra != null && extra > 0) {
+        return { elapsed: computedElapsed, extra }
+      }
+      return { elapsed: computedElapsed }
     }
     
     // Fallback: if no snapshot yet, return server elapsed
-    return base
+    if (base != null) {
+      return { elapsed: base, extra: extra ?? undefined }
+    }
+    return null
   }
 
   return (
@@ -337,9 +348,14 @@ export default function CanliSkorlarPage() {
                   {/* Status */}
                   <div className="col-span-2 flex items-center gap-2">
                     {getStatusBadge(fx.fixture.status.short)}
-                    {getDisplayedElapsed(fx) != null ? (
-                      <span className="text-xs text-red-400 font-semibold">{getDisplayedElapsed(fx)}'</span>
-                    ) : null}
+                    {(() => {
+                      const elapsedData = getDisplayedElapsed(fx)
+                      if (!elapsedData) return null
+                      const display = elapsedData.extra != null && elapsedData.extra > 0
+                        ? `${elapsedData.elapsed}+${elapsedData.extra}`
+                        : `${elapsedData.elapsed}`
+                      return <span className="text-xs text-red-400 font-semibold">{display}'</span>
+                    })()}
                   </div>
                   {/* Home */}
                   <div className="col-span-4 flex items-center gap-2 min-w-0">
