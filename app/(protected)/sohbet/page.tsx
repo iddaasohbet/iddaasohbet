@@ -110,6 +110,12 @@ export default function LiveChatPage() {
     return () => { clearInterval(id); clearInterval(pres) }
   }, [])
 
+  // Her mesaj geldiğinde otomatik aşağı kaydır
+  useEffect(() => {
+    const el = listRef.current
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }, [messages.length])
+
   const send = async () => {
     if (!value.trim()) return
     setSending(true)
@@ -136,16 +142,20 @@ export default function LiveChatPage() {
         <div className="col-span-12 md:col-span-3">
           <Card className="glass-dark border-white/10">
             <CardHeader className="border-b border-white/5 py-3">
-              <CardTitle className="text-sm flex items-center justify-between">
-                <span>Çevrimiçi</span>
-                <span className="inline-flex items-center gap-1 text-[10px] rounded-full px-2 py-0.5 border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  Bot Aktif
-                </span>
-              </CardTitle>
+              <CardTitle className="text-sm">Çevrimiçi</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="max-h-[65vh] overflow-y-auto p-3 space-y-2">
+                {/* Spor-Bot sabit giriş */}
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                  <div className="relative h-2 w-2">
+                    <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-60"></span>
+                    <span className="relative block h-2 w-2 rounded-full bg-emerald-500"></span>
+                  </div>
+                  <span className="text-sm truncate flex items-center gap-1 text-emerald-300 font-semibold">
+                    <Shield className="h-3 w-3" /> Spor-Bot
+                  </span>
+                </div>
                 {online.map((o) => (
                   <div key={o.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
                     <div className={`relative h-2 w-2 ${o.user?.role === 'ADMIN' ? 'bg-amber-400 rounded-full' : ''}`}>
@@ -253,7 +263,32 @@ export default function LiveChatPage() {
                             Canlı Skor Botu
                           </div>
                         )}
-                        <div className={`whitespace-pre-wrap break-words leading-relaxed ${isBot ? 'text-emerald-100' : 'text-foreground/90'}`}>{m.content}</div>
+                        {/* Bot gol mesajı premium şablon */}
+                        {(() => {
+                          if (!isBot) return (
+                            <div className="whitespace-pre-wrap break-words leading-relaxed text-foreground/90">{m.content}</div>
+                          )
+                          const re = /\[GOL\]\s*(\d+)'\s*(.*?)\s+(\d+)-(\d+)\s+(.*)/i
+                          const match = re.exec(m.content)
+                          if (!match) {
+                            return <div className="whitespace-pre-wrap break-words leading-relaxed text-emerald-100">{m.content}</div>
+                          }
+                          const minute = match[1]
+                          const home = match[2]
+                          const hs = match[3]
+                          const as = match[4]
+                          const away = match[5]
+                          return (
+                            <div className="flex items-center gap-4">
+                              <div className="px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-200 text-[11px] border border-emerald-400/30">{minute}'</div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-foreground/80 max-w-[140px] truncate">{home}</span>
+                                <span className="text-xl font-bold text-emerald-300 tabular-nums">{hs}<span className="mx-1 text-emerald-200">-</span>{as}</span>
+                                <span className="text-foreground/80 max-w-[140px] truncate">{away}</span>
+                              </div>
+                            </div>
+                          )
+                        })()}
                         <div className="flex items-center gap-2 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             className="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-110 transition-all"
