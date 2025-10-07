@@ -1,44 +1,41 @@
-import { Trophy, Twitter, Instagram, MessageCircle, Sparkles } from 'lucide-react'
+import { Trophy, Twitter, Instagram, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-white/5 py-12 mt-20 overflow-hidden">
+    <footer className="relative border-t border-white/5 py-16 mt-20 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 grid-pattern opacity-50"></div>
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header-style Logo Section - Single Row */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-12 pb-8 border-b border-white/5">
-          {/* Logo - Same as Header */}
-          <Link href="/" className="flex items-center space-x-2 group mb-4 md:mb-0">
-            <div className="relative">
-              <Trophy className="h-8 w-8 text-green-500 group-hover:text-yellow-400 transition-all duration-300" />
-              <div className="absolute inset-0 bg-green-500 blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-            </div>
-            <span className="text-2xl font-bold">
-              <span className="gradient-text neon-text-green">İddaa</span>
-              <span className="text-yellow-400 neon-text-yellow">Sohbet</span>
-            </span>
-          </Link>
-
-          {/* Social Icons - Same style as header buttons */}
-          <div className="flex items-center space-x-3">
-            <a href="#" className="h-10 w-10 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 transition-all duration-300 group">
-              <Twitter className="h-5 w-5 text-foreground/70 group-hover:text-green-400 transition-colors" />
-            </a>
-            <a href="#" className="h-10 w-10 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 transition-all duration-300 group">
-              <Instagram className="h-5 w-5 text-foreground/70 group-hover:text-green-400 transition-colors" />
-            </a>
-            <a href="#" className="h-10 w-10 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 transition-all duration-300 group">
-              <MessageCircle className="h-5 w-5 text-foreground/70 group-hover:text-green-400 transition-colors" />
-            </a>
-          </div>
-        </div>
-
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* Brand Column */}
+          <div>
+            <Link href="/" className="flex items-center space-x-2 mb-4">
+              <Trophy className="h-8 w-8 text-green-400" />
+              <div>
+                <span className="text-2xl font-bold gradient-text block">İddaa</span>
+                <span className="text-2xl font-bold text-yellow-400 block">Sohbet</span>
+              </div>
+            </Link>
+            <p className="text-sm text-foreground/60 mb-4">
+              Türkiye'nin en büyük iddaa kupon paylaşım platformu
+            </p>
+            <div className="flex items-center space-x-3">
+              <a href="#" className="h-9 w-9 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 transition-all">
+                <Twitter className="h-4 w-4 text-foreground/70" />
+              </a>
+              <a href="#" className="h-9 w-9 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 transition-all">
+                <Instagram className="h-4 w-4 text-foreground/70" />
+              </a>
+              <a href="#" className="h-9 w-9 rounded-lg glass border border-white/10 flex items-center justify-center hover:border-green-500/50 hover:bg-green-500/10 transition-all">
+                <MessageCircle className="h-4 w-4 text-foreground/70" />
+              </a>
+            </div>
+          </div>
+
           {/* Platform Column */}
           <div>
             <h4 className="font-bold text-lg mb-4 text-green-400">Platform</h4>
@@ -50,7 +47,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Hakkında + Yasal Combined Column */}
+          {/* Hakkında Column */}
           <div>
             <h4 className="font-bold text-lg mb-4 text-green-400">Hakkında</h4>
             <ul className="space-y-3 text-sm text-foreground/60">
@@ -68,6 +65,7 @@ export default function Footer() {
               <li><Link href="/kullanim-kosullari" className="hover:text-green-400 transition-colors">Kullanım Koşulları</Link></li>
               <li><Link href="/gizlilik" className="hover:text-green-400 transition-colors">Gizlilik Politikası</Link></li>
               <li><Link href="/cerez-politikasi" className="hover:text-green-400 transition-colors">Çerez Politikası</Link></li>
+              <li><Link href="/sorumluluk" className="hover:text-green-400 transition-colors">Sorumluluk Reddi</Link></li>
               <li><Link href="/kvkk" className="hover:text-green-400 transition-colors">KVKK</Link></li>
             </ul>
           </div>
@@ -89,18 +87,10 @@ export default function Footer() {
               ⚠️ 18 yaş altındaki kişilerin bahis oynamaması gerekmektedir. Kumar bağımlılığı yapabilir. Sorumlu oyun önemlidir.
             </p>
           </div>
-          <div className="mt-6 flex justify-center">
-            <a
-              href="https://cihatsoft.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Siteyi geliştiren: cihatsoft.com"
-              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-            >
-              <Sparkles className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform" aria-hidden="true" />
-              <span className="text-xs text-foreground/70">Geliştiren</span>
-              <span className="text-sm font-semibold bg-gradient-to-r from-green-400 to-yellow-400 bg-clip-text text-transparent">cihatsoft.com</span>
-            </a>
+          <div className="mt-6">
+            <p className="text-xs text-center text-foreground/60">
+              Siteyi yapan <a href="https://cihatsoft.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-green-400 underline underline-offset-4">cihatsoft.com</a>
+            </p>
           </div>
         </div>
       </div>
