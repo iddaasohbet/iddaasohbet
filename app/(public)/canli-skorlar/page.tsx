@@ -258,28 +258,25 @@ export default function CanliSkorlarPage() {
   const getDisplayedElapsed = (fx: Fixture): number | null => {
     const phase = fx?.fixture?.status?.short
     const base = typeof fx?.fixture?.status?.elapsed === 'number' ? fx.fixture.status.elapsed : null
-    const snap = elapsedSnapshotRef.current.get(fx.fixture.id)
     const livePhases = new Set(['1H', '2H', 'ET', 'LIVE'])
     if (!livePhases.has(phase)) return base
-    if (snap && typeof snap.elapsed === 'number') {
-      const deltaSec = Math.max(0, Math.floor((Date.now() - snap.seenAt) / 1000))
-      // Round down to minute but clamp not to exceed base + reasonable drift (e.g., +2)
-      let add = Math.floor(deltaSec / 60)
-      const maxDrift = 2
-      if (base != null && snap.elapsed < base) {
-        // server already ahead; trust server
-        return base
+    
+    // Compute real-time elapsed from fixture kickoff time
+    try {
+      const kickoffMs = new Date(fx.fixture.date).getTime()
+      const nowMs = Date.now()
+      const realElapsedSec = Math.floor((nowMs - kickoffMs) / 1000)
+      const realElapsedMin = Math.floor(realElapsedSec / 60)
+      
+      // Cap reasonable ranges (0–120 for normal + extra time)
+      if (realElapsedMin >= 0 && realElapsedMin <= 120) {
+        return realElapsedMin
       }
-      if (add > maxDrift) add = maxDrift
-      return snap.elapsed + add
+    } catch {
+      // fallback to server elapsed
     }
-    if (base != null) {
-      const deltaSec = Math.max(0, Math.floor((Date.now() - lastLiveFetchAt) / 1000))
-      let add = Math.floor(deltaSec / 60)
-      if (add > 2) add = 2
-      return base + add
-    }
-    return null
+    
+    return base
   }
 
   return (
