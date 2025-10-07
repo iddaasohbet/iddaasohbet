@@ -54,6 +54,8 @@ export default function CanliSkorlarPage() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
+  const previousScoresRef = useRef<Map<number, number>>(new Map())
+  const recentGoalsRef = useRef<Map<number, number>>(new Map())
   const audioCtxRef = useRef<AudioContext | null>(null)
   
 
@@ -106,17 +108,23 @@ export default function CanliSkorlarPage() {
           }
           return next
         })
+        // mirror to ref to avoid stale closure in intervals
+        recentGoalsRef.current = new Map(recentGoalsRef.current)
+        for (const [id, ts] of recentGoalsRef.current) {
+          if (nowTs - ts > 20000) recentGoalsRef.current.delete(id)
+        }
 
         // detect goals and update maps
         let goalHappened = false
-        const nextScores = new Map(previousScores)
+        const prevScoresSnapshot = previousScoresRef.current
+        const nextScores = new Map(prevScoresSnapshot)
         const indexMap = new Map<number, number>(fetched.map((fx, idx) => [fx.fixture.id, idx]))
         for (const fx of fetched) {
           const id = fx.fixture.id
           const home = fx.goals.home ?? 0
           const away = fx.goals.away ?? 0
           const sum = home + away
-          const prevSum = previousScores.get(id)
+          const prevSum = prevScoresSnapshot.get(id)
           if (prevSum != null && sum > prevSum) {
             goalHappened = true
             setRecentGoals((prev) => {
@@ -124,12 +132,13 @@ export default function CanliSkorlarPage() {
               next.set(id, nowTs)
               return next
             })
+            recentGoalsRef.current.set(id, nowTs)
           }
           nextScores.set(id, sum)
         }
 
         // sort: recently scored first (by most recent), then keep original order
-        const recentMap = new Map(recentGoals)
+        const recentMap = new Map(recentGoalsRef.current)
         const sorted = [...fetched].sort((a, b) => {
           const at = recentMap.get(a.fixture.id) ?? 0
           const bt = recentMap.get(b.fixture.id) ?? 0
@@ -139,6 +148,7 @@ export default function CanliSkorlarPage() {
 
         setLiveFixtures(sorted)
         setPreviousScores(nextScores)
+        previousScoresRef.current = nextScores
         setLastUpdate(new Date())
 
         if (goalHappened) void playGoalSound()
@@ -177,7 +187,7 @@ export default function CanliSkorlarPage() {
       setLoading(false)
     })()
     // Refresh live every 15s
-    const liveId = setInterval(fetchLiveScores, 15000)
+    const liveId = setInterval(() => { void fetchLiveScores() }, 10000)
     // Refresh today every 10 minutes
     const todayId = setInterval(fetchTodayScores, 600000)
     return () => {
@@ -222,18 +232,7 @@ export default function CanliSkorlarPage() {
     }
   }
 
-  const formatKickoff = (isoDate: string) => {
-    try {
-      const d = new Date(isoDate)
-      return new Intl.DateTimeFormat('tr-TR', {
-        timeZone: 'Europe/Istanbul',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(d)
-    } catch {
-      return ''
-    }
-  }
+  // kickoff time chip removed for stability; will re-add after QA
 
   return (
     <div className="min-h-screen py-12">
@@ -349,9 +348,6 @@ export default function CanliSkorlarPage() {
                   >
                     <div className="col-span-2 flex items-center gap-2">
                       {getStatusBadge(fx.fixture.status.short)}
-                      <span className="text-[11px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                        {formatKickoff(fx.fixture.date)}
-                      </span>
                     </div>
                     <div className="col-span-4 flex items-center gap-2 min-w-0">
                       <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
