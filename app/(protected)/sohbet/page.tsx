@@ -113,7 +113,13 @@ export default function LiveChatPage() {
   // Her mesaj geldiğinde otomatik aşağı kaydır
   useEffect(() => {
     const el = listRef.current
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    if (!el) return
+    // Kullanıcı en alttan çok uzak değilse otomatik kaydır
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    const nearBottom = distanceFromBottom < 150
+    if (nearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
   }, [messages.length])
 
   const send = async () => {
