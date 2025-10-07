@@ -31,6 +31,12 @@ export default function LiveChatPage() {
   const didMountRef = useRef(false)
   const prevMsgCountRef = useRef(0)
 
+  const scrollToBottom = () => {
+    const el = listRef.current
+    if (el) el.scrollTop = el.scrollHeight
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
+
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/giris')
   }, [status])
@@ -76,6 +82,8 @@ export default function LiveChatPage() {
       if (!didMountRef.current) {
         didMountRef.current = true
       }
+      // Yeni veri geldikten hemen sonra aşağı kaydır
+      setTimeout(scrollToBottom, 30)
       return data
     } catch {
       return { messages: [] }
@@ -133,6 +141,7 @@ export default function LiveChatPage() {
       setValue('')
       setReplyTo(null)
       await fetchMessages()
+      scrollToBottom()
     } finally {
       setSending(false)
     }
@@ -214,7 +223,7 @@ export default function LiveChatPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3">
+              <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3 scroll-smooth">
               {/* Tarih ayırıcıları ve gruplama basit versiyon */}
               {messages.map((m, idx) => {
                 const prev = messages[idx - 1]
