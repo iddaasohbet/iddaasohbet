@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Radio } from 'lucide-react'
 
 interface FixtureItem {
@@ -19,6 +19,8 @@ interface FixtureItem {
 export default function LiveScoresTicker() {
   const [items, setItems] = useState<FixtureItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map())
+  const previousMapRef = useRef<Map<number, number>>(new Map())
 
   const fetchLive = async () => {
     try {
@@ -26,7 +28,37 @@ export default function LiveScoresTicker() {
       // Sadece canlı maçlar
       const resLive = await fetch('/api/live-scores?type=live', { cache: 'no-store' })
       const dataLive = await resLive.json()
-      setItems(Array.isArray(dataLive?.response) ? dataLive.response : [])
+      const list: FixtureItem[] = Array.isArray(dataLive?.response) ? dataLive.response : []
+      const nowTs = Date.now()
+      // prune old highlights (>20s)
+      setRecentGoals((prev) => {
+        const next = new Map(prev)
+        for (const [id, ts] of next) if (nowTs - ts > 20000) next.delete(id)
+        return next
+      })
+      // detect goals
+      const prev = previousMapRef.current
+      const nextPrev = new Map(prev)
+      for (const fx of list) {
+        const id = fx.fixture.id
+        const sum = (fx.goals.home ?? 0) + (fx.goals.away ?? 0)
+        const old = prev.get(id)
+        if (old != null && sum > old) {
+          setRecentGoals((p) => { const n = new Map(p); n.set(id, nowTs); return n })
+        }
+        nextPrev.set(id, sum)
+      }
+      previousMapRef.current = nextPrev
+      // sort by recent goal timestamp desc, then keep order
+      const recent = new Map(recentGoals)
+      const indexMap = new Map<number, number>(list.map((fx, i) => [fx.fixture.id, i]))
+      const sorted = [...list].sort((a, b) => {
+        const at = recent.get(a.fixture.id) ?? 0
+        const bt = recent.get(b.fixture.id) ?? 0
+        if (at !== bt) return bt - at
+        return (indexMap.get(a.fixture.id) ?? 0) - (indexMap.get(b.fixture.id) ?? 0)
+      })
+      setItems(sorted)
     } catch (e) {
       console.error('Error fetching scores:', e)
       setItems([])
@@ -37,7 +69,7 @@ export default function LiveScoresTicker() {
 
   useEffect(() => {
     fetchLive()
-    const id = setInterval(fetchLive, 60000)
+    const id = setInterval(fetchLive, 15000)
     return () => clearInterval(id)
   }, [])
 
@@ -68,8 +100,11 @@ export default function LiveScoresTicker() {
               </div>
             ) : items.length > 0 ? (
               <div className="flex gap-8 animate-scroll">
-                {[...items, ...items].map((fx, idx) => (
-                  <div key={`${fx.fixture.id}-${idx}`} className="flex items-center gap-3 whitespace-nowrap">
+                {[...items, ...items].map((fx, idx) => {
+                  const ts = recentGoals.get(fx.fixture.id)
+                  const highlight = typeof ts === 'number' && Date.now() - ts <= 20000
+                  return (
+                  <div key={`${fx.fixture.id}-${idx}`} className={`flex items-center gap-3 whitespace-nowrap ${highlight ? 'score-blink' : ''}`}>
                     {/* Live icon + minute */}
                     <span className="flex items-center gap-1 text-red-400">
                       <Radio className="h-3 w-3 animate-pulse" />
@@ -82,7 +117,7 @@ export default function LiveScoresTicker() {
                       {fx.teams.home.name.length > 12 ? fx.teams.home.name.substring(0, 12) + '...' : fx.teams.home.name} {fx.goals.home ?? '-'} - {fx.goals.away ?? '-'} {fx.teams.away.name.length > 12 ? fx.teams.away.name.substring(0, 12) + '...' : fx.teams.away.name}
                     </span>
                   </div>
-                ))}
+                )})}
               </div>
             ) : (
               <div className="text-sm text-foreground/50">Gösterilecek skor bulunamadı</div>
@@ -97,6 +132,7 @@ export default function LiveScoresTicker() {
         }
         .animate-scroll { animation: scroll 30s linear infinite; }
         .animate-scroll:hover { animation-play-state: paused; }
+        .score-blink { color: #22c55e; text-shadow: 0 0 8px rgba(34, 197, 94, 0.7); }
       `}</style>
     </div>
   )

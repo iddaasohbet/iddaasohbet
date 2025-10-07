@@ -6,8 +6,6 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import Script from 'next/script'
 import { Radio, Trophy, RefreshCw } from 'lucide-react'
 
 interface Fixture {
@@ -57,12 +55,7 @@ export default function CanliSkorlarPage() {
   const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
   const audioCtxRef = useRef<AudioContext | null>(null)
-  const [statsOpen, setStatsOpen] = useState<boolean>(false)
-  const [statsFixtureId, setStatsFixtureId] = useState<number | null>(null)
-
-  const ApiSportsWidget = (props: any) => {
-    return (React.createElement as any)('api-sports-widget', props)
-  }
+  
 
   const ensureAudioContext = async () => {
     if (typeof window === 'undefined') return null
@@ -183,8 +176,8 @@ export default function CanliSkorlarPage() {
       await Promise.all([fetchLiveScores(), fetchTodayScores()])
       setLoading(false)
     })()
-    // Refresh live every 2 minutes
-    const liveId = setInterval(fetchLiveScores, 120000)
+    // Refresh live every 15s
+    const liveId = setInterval(fetchLiveScores, 15000)
     // Refresh today every 10 minutes
     const todayId = setInterval(fetchTodayScores, 600000)
     return () => {
@@ -292,8 +285,7 @@ export default function CanliSkorlarPage() {
                 return (
                 <div
                   key={fx.fixture.id}
-                  className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer ${isHighlighted ? 'goal-blink' : ''}`}
-                  onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                  className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition ${isHighlighted ? 'goal-blink' : ''}`}
                 >
                   {/* Status */}
                   <div className="col-span-2 flex items-center gap-2">
@@ -340,8 +332,7 @@ export default function CanliSkorlarPage() {
                 {todayFixtures.filter((f) => f.fixture.status.short === 'NS').map((fx) => (
                   <div
                     key={fx.fixture.id}
-                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer"
-                    onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition"
                   >
                     <div className="col-span-2 flex items-center gap-2">
                       {getStatusBadge(fx.fixture.status.short)}
@@ -379,8 +370,7 @@ export default function CanliSkorlarPage() {
                 {todayFixtures.filter((f) => f.fixture.status.short === 'FT').map((fx) => (
                   <div
                     key={fx.fixture.id}
-                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer"
-                    onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition"
                   >
                     <div className="col-span-2 flex items-center gap-2">
                       {getStatusBadge(fx.fixture.status.short)}
@@ -416,50 +406,7 @@ export default function CanliSkorlarPage() {
           )}
         </Tabs>
 
-        {/* API-Sports config (hidden) */}
-        <div style={{ display: 'none' }}>
-          <ApiSportsWidget
-            data-type="config"
-            data-key={process.env.NEXT_PUBLIC_APISPORTS_WIDGET_KEY || ''}
-            data-sport="football"
-            data-host="v3.football.api-sports.io"
-            data-theme="dark"
-            data-lang="tr"
-            data-timezone="Europe/Istanbul"
-            data-show-errors="true"
-          />
-        </div>
-
-        {/* API-Sports widget script with required attrs */}
-        <Script
-          src="https://widgets.api-sports.io/3.1.0/widgets.js"
-          strategy="afterInteractive"
-          type="module"
-          data-host="v3.football.api-sports.io"
-          data-key={process.env.NEXT_PUBLIC_APISPORTS_WIDGET_KEY || ''}
-          data-theme="dark"
-        />
-
-        {/* Match Statistics Modal */}
-        <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
-          <DialogContent className="max-w-4xl w-[95vw] bg-black text-white border-white/10">
-            <DialogHeader>
-              <DialogTitle>Maç İstatistikleri</DialogTitle>
-            </DialogHeader>
-            <div className="w-full min-h-[500px]">
-              {statsFixtureId != null ? (
-                <ApiSportsWidget
-                  data-type="game"
-                  data-sport="football"
-                  data-game-id={String(statsFixtureId)}
-                  data-id={String(statsFixtureId)}
-                  data-game-tab="statistics"
-                  data-theme="dark"
-                />
-              ) : null}
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Stats modal removed as requested */}
       </div>
       <style jsx>{`
         @keyframes goalFlash {
