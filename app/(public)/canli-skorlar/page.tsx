@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import Script from 'next/script'
 import { Radio, Trophy, RefreshCw } from 'lucide-react'
 
 interface Fixture {
@@ -54,6 +56,12 @@ export default function CanliSkorlarPage() {
   const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const [statsOpen, setStatsOpen] = useState<boolean>(false)
+  const [statsFixtureId, setStatsFixtureId] = useState<number | null>(null)
+
+  const ApiSportsWidget = (props: any) => {
+    return (React.createElement as any)('api-sports-widget', props)
+  }
 
   const ensureAudioContext = async () => {
     if (typeof window === 'undefined') return null
@@ -281,7 +289,11 @@ export default function CanliSkorlarPage() {
                 const highlightTs = recentGoals.get(fx.fixture.id)
                 const isHighlighted = typeof highlightTs === 'number' && Date.now() - highlightTs <= 20000
                 return (
-                <div key={fx.fixture.id} className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition ${isHighlighted ? 'goal-blink' : ''}`}>
+                <div
+                  key={fx.fixture.id}
+                  className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer ${isHighlighted ? 'goal-blink' : ''}`}
+                  onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                >
                   {/* Status */}
                   <div className="col-span-2 flex items-center gap-2">
                     {getStatusBadge(fx.fixture.status.short)}
@@ -325,7 +337,11 @@ export default function CanliSkorlarPage() {
             <Card className="glass-dark border-white/10 overflow-hidden">
               <div className="divide-y divide-white/10">
                 {todayFixtures.filter((f) => f.fixture.status.short === 'NS').map((fx) => (
-                  <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+                  <div
+                    key={fx.fixture.id}
+                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer"
+                    onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                  >
                     <div className="col-span-2 flex items-center gap-2">
                       {getStatusBadge(fx.fixture.status.short)}
                     </div>
@@ -360,7 +376,11 @@ export default function CanliSkorlarPage() {
             <Card className="glass-dark border-white/10 overflow-hidden">
               <div className="divide-y divide-white/10">
                 {todayFixtures.filter((f) => f.fixture.status.short === 'FT').map((fx) => (
-                  <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+                  <div
+                    key={fx.fixture.id}
+                    className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition cursor-pointer"
+                    onClick={() => { setStatsFixtureId(fx.fixture.id); setStatsOpen(true) }}
+                  >
                     <div className="col-span-2 flex items-center gap-2">
                       {getStatusBadge(fx.fixture.status.short)}
                     </div>
@@ -394,6 +414,23 @@ export default function CanliSkorlarPage() {
           </>
           )}
         </Tabs>
+
+        {/* API-Sports widget script */}
+        <Script src="https://widgets.api-sports.io/3.1.0/widgets.js" strategy="afterInteractive" type="module" />
+
+        {/* Match Statistics Modal */}
+        <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
+          <DialogContent className="max-w-4xl w-[95vw] bg-black text-white border-white/10">
+            <DialogHeader>
+              <DialogTitle>Maç İstatistikleri</DialogTitle>
+            </DialogHeader>
+            <div className="w-full min-h-[500px]">
+              {statsFixtureId != null ? (
+                <ApiSportsWidget data-type="game" data-game-id={String(statsFixtureId)} data-game-tab="statistics" />
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       <style jsx>{`
         @keyframes goalFlash {
