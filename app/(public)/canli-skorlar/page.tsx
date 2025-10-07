@@ -416,8 +416,29 @@ export default function CanliSkorlarPage() {
           )}
         </Tabs>
 
-        {/* API-Sports widget script */}
-        <Script src="https://widgets.api-sports.io/3.1.0/widgets.js" strategy="afterInteractive" type="module" />
+        {/* API-Sports config (hidden) */}
+        <div style={{ display: 'none' }}>
+          <ApiSportsWidget
+            data-type="config"
+            data-key={process.env.NEXT_PUBLIC_APISPORTS_WIDGET_KEY || ''}
+            data-sport="football"
+            data-host="v3.football.api-sports.io"
+            data-theme="dark"
+            data-lang="tr"
+            data-timezone="Europe/Istanbul"
+            data-show-errors="true"
+          />
+        </div>
+
+        {/* API-Sports widget script with required attrs */}
+        <Script
+          src="https://widgets.api-sports.io/3.1.0/widgets.js"
+          strategy="afterInteractive"
+          type="module"
+          data-host="v3.football.api-sports.io"
+          data-key={process.env.NEXT_PUBLIC_APISPORTS_WIDGET_KEY || ''}
+          data-theme="dark"
+        />
 
         {/* Match Statistics Modal */}
         <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
@@ -427,7 +448,14 @@ export default function CanliSkorlarPage() {
             </DialogHeader>
             <div className="w-full min-h-[500px]">
               {statsFixtureId != null ? (
-                <ApiSportsWidget data-type="game" data-game-id={String(statsFixtureId)} data-game-tab="statistics" />
+                <ApiSportsWidget
+                  data-type="game"
+                  data-sport="football"
+                  data-game-id={String(statsFixtureId)}
+                  data-id={String(statsFixtureId)}
+                  data-game-tab="statistics"
+                  data-theme="dark"
+                />
               ) : null}
             </div>
           </DialogContent>
