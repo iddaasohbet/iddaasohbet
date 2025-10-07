@@ -1,4 +1,4 @@
-import { Trophy, Twitter, Instagram, MessageCircle } from 'lucide-react'
+import { Trophy, Twitter, Instagram, MessageCircle, Bot } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Footer() {
@@ -77,9 +77,16 @@ export default function Footer() {
             <p className="text-sm text-foreground/60 text-center md:text-left">
               © 2025 İddaaSohbet. Tüm hakları saklıdır.
             </p>
-            <div className="flex items-center space-x-2">
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs text-foreground/60">15,423 aktif kullanıcı</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-xs text-foreground/60">15,423 aktif kullanıcı</span>
+              </div>
+              <a href="/sohbet" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-wide text-foreground/70 hover:text-white hover:border-green-500/40 hover:bg-green-500/10 transition-colors">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-ping"></span>
+                <Bot className="h-3 w-3 text-green-400" />
+                <span>Canlı Bot Aktif</span>
+              </a>
             </div>
           </div>
           <div className="mt-4 glass-dark p-4 rounded-lg border border-yellow-400/20">
