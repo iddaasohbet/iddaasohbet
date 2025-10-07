@@ -161,25 +161,6 @@ export default function CanliSkorlarPage() {
     }
   }
 
-  const fetchFinished48h = async () => {
-    try {
-      const end = new Date()
-      const start = new Date(end.getTime() - 48 * 60 * 60 * 1000)
-      const fmt = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
-      const from = fmt(start)
-      const to = fmt(end)
-      const res = await fetch(`/api/live-scores?type=range&from=${from}&to=${to}`, { cache: 'no-store' })
-      const data = await res.json()
-      if (Array.isArray(data?.response)) {
-        // sadece bitmiş olanları tut
-        const finished = data.response.filter((f: any) => isFinished(f?.fixture?.status?.short))
-        setTodayFixtures(finished)
-      }
-    } catch (e) {
-      console.error('Failed to fetch range scores:', e)
-    }
-  }
-
   useEffect(() => {
     // Unlock audio context on first interaction to allow autoplay-like behavior
     const onAnyInput = async () => {
@@ -192,7 +173,7 @@ export default function CanliSkorlarPage() {
 
     ;(async () => {
       setLoading(true)
-      await Promise.all([fetchLiveScores(), fetchFinished48h()])
+      await Promise.all([fetchLiveScores(), fetchTodayScores()])
       setLoading(false)
     })()
     // Refresh live every 15s
