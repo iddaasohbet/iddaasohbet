@@ -74,12 +74,12 @@ export default function LiveScoresTicker() {
   }, [])
 
   const renderLabel = (
-    <div className="flex items-center gap-2 text-red-400 font-semibold whitespace-nowrap">
+    <div className="flex items-center gap-2 text-green-400 font-semibold whitespace-nowrap">
       <div className="relative">
         <Radio className="h-4 w-4 animate-pulse" />
         <span className="absolute -top-1 -right-1 flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
         </span>
       </div>
       <span className="text-sm">Canlı</span>
@@ -87,7 +87,7 @@ export default function LiveScoresTicker() {
   )
 
   return (
-    <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-red-950/10 to-black/40 backdrop-blur-sm">
+    <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-green-950/10 to-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-6 h-12 overflow-hidden">
           {renderLabel}
