@@ -112,9 +112,10 @@ export default function LiveChatPage() {
 
   // Her mesaj geldiğinde otomatik aşağı kaydır
   useEffect(() => {
-    // Her yeni mesajda (ilk render sonrası) aşağı kaydır
-    if (!didMountRef.current) return
+    // Her yeni mesajda zorla en alta in
     const id = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (el) el.scrollTop = el.scrollHeight
       bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
     })
     return () => cancelAnimationFrame(id)
