@@ -141,11 +141,16 @@ export default function CanliSkorlarPage() {
           // snapshot elapsed per fixture
           const el = typeof fx.fixture.status.elapsed === 'number' ? fx.fixture.status.elapsed : null
           if (el != null) {
-            elapsedSnapshotRef.current.set(id, {
-              elapsed: el,
-              seenAt: nowTs,
-              phase: fx.fixture.status.short,
-            })
+            const prev = elapsedSnapshotRef.current.get(id)
+            const phase = fx.fixture.status.short
+            // Only refresh the snapshot when server elapsed advanced or phase changed
+            if (!prev || phase !== prev.phase || el > prev.elapsed) {
+              elapsedSnapshotRef.current.set(id, {
+                elapsed: el,
+                seenAt: nowTs,
+                phase,
+              })
+            }
           }
         }
 
@@ -201,8 +206,8 @@ export default function CanliSkorlarPage() {
     })()
     // Refresh live via API every 15s (reduce lag)
     const liveId = setInterval(() => { void fetchLiveScores() }, 15000)
-    // Local clock tick to advance elapsed between fetches (every 10s)
-    const tickId = setInterval(() => setClockTick((v) => v + 1), 10000)
+    // Local clock tick to advance elapsed between fetches (every 5s)
+    const tickId = setInterval(() => setClockTick((v) => v + 1), 5000)
     // Refresh today every 10 minutes
     const todayId = setInterval(fetchTodayScores, 600000)
     return () => {
@@ -258,12 +263,20 @@ export default function CanliSkorlarPage() {
     if (!livePhases.has(phase)) return base
     if (snap && typeof snap.elapsed === 'number') {
       const deltaSec = Math.max(0, Math.floor((Date.now() - snap.seenAt) / 1000))
-      const add = Math.floor(deltaSec / 60)
+      // Round down to minute but clamp not to exceed base + reasonable drift (e.g., +2)
+      let add = Math.floor(deltaSec / 60)
+      const maxDrift = 2
+      if (base != null && snap.elapsed < base) {
+        // server already ahead; trust server
+        return base
+      }
+      if (add > maxDrift) add = maxDrift
       return snap.elapsed + add
     }
     if (base != null) {
       const deltaSec = Math.max(0, Math.floor((Date.now() - lastLiveFetchAt) / 1000))
-      const add = Math.floor(deltaSec / 60)
+      let add = Math.floor(deltaSec / 60)
+      if (add > 2) add = 2
       return base + add
     }
     return null
