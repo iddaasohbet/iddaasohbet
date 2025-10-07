@@ -72,15 +72,7 @@ export async function GET() {
       }
     }
 
-    // If no live goal detected, allow manual test via ?demo=true
-    if (messages.length === 0) {
-      const demo = true
-      if (demo) {
-        const text = `[GOL] 67' Demo FC 2-1 Sample United (Demo Skorer)`
-        await prisma.chatMessage.create({ data: { userId: bot.id, channelId: ch.id, content: text } })
-        messages.push(text)
-      }
-    }
+    // Demo mesajları kapatıldı
 
     return NextResponse.json({ ok: true, published: messages.length })
   } catch (e: any) {

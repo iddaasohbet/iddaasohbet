@@ -136,7 +136,13 @@ export default function LiveChatPage() {
         <div className="col-span-12 md:col-span-3">
           <Card className="glass-dark border-white/10">
             <CardHeader className="border-b border-white/5 py-3">
-              <CardTitle className="text-sm">Çevrimiçi</CardTitle>
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span>Çevrimiçi</span>
+                <span className="inline-flex items-center gap-1 text-[10px] rounded-full px-2 py-0.5 border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  Bot Aktif
+                </span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="max-h-[65vh] overflow-y-auto p-3 space-y-2">
@@ -222,7 +228,7 @@ export default function LiveChatPage() {
                           </div>
                         </div>
                       )}
-                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg ${isBot ? 'bg-purple-500/10 border border-purple-500/30' : mine ? 'bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40' : (m.user && (m.user as any).role === 'ADMIN') ? 'bg-amber-500/10 border border-amber-400/40 backdrop-blur-sm' : 'bg-white/5 border border-white/10 backdrop-blur-sm'}`}>
+                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-lg ${isBot ? 'bg-gradient-to-br from-emerald-500/15 to-teal-500/10 border border-emerald-400/30 ring-1 ring-emerald-300/20' : mine ? 'bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40' : (m.user && (m.user as any).role === 'ADMIN') ? 'bg-amber-500/10 border border-amber-400/40 backdrop-blur-sm' : 'bg-white/5 border border-white/10 backdrop-blur-sm'}`}>
                         {m.parent && (
                           <div className="text-[10px] mb-2 px-2 py-1.5 rounded-lg bg-black/30 border border-white/10">
                             <div className="flex items-center gap-1 mb-0.5">
@@ -239,12 +245,15 @@ export default function LiveChatPage() {
                           </div>
                         )}
                         {isBot && (
-                          <div className="text-xs text-purple-400 mb-1.5 font-semibold flex items-center gap-1">
-                            <Radio className="h-3 w-3" />
-                            Sohbet Botu
+                          <div className="text-[11px] text-emerald-300 mb-1.5 font-semibold flex items-center gap-2">
+                            <div className="relative">
+                              <Radio className="h-3.5 w-3.5" />
+                              <div className="absolute inset-0 bg-emerald-400 blur-sm opacity-30" />
+                            </div>
+                            Canlı Skor Botu
                           </div>
                         )}
-                        <div className="whitespace-pre-wrap break-words leading-relaxed text-foreground/90">{m.content}</div>
+                        <div className={`whitespace-pre-wrap break-words leading-relaxed ${isBot ? 'text-emerald-100' : 'text-foreground/90'}`}>{m.content}</div>
                         <div className="flex items-center gap-2 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             className="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-110 transition-all"
