@@ -15,9 +15,9 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <Trophy className="h-8 w-8 text-green-400" />
-              <div>
-                <span className="text-2xl font-bold gradient-text block">İddaa</span>
-                <span className="text-2xl font-bold text-yellow-400 block">Sohbet</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold gradient-text">İddaa</span>
+                <span className="text-2xl font-bold text-yellow-400">Sohbet</span>
               </div>
             </Link>
             <p className="text-sm text-foreground/60 mb-4">
@@ -87,10 +87,17 @@ export default function Footer() {
               ⚠️ 18 yaş altındaki kişilerin bahis oynamaması gerekmektedir. Kumar bağımlılığı yapabilir. Sorumlu oyun önemlidir.
             </p>
           </div>
-          <div className="mt-6">
-            <p className="text-xs text-center text-foreground/60">
-              Siteyi yapan <a href="https://cihatsoft.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-green-400 underline underline-offset-4">cihatsoft.com</a>
-            </p>
+          <div className="mt-6 flex justify-center">
+            <a
+              href="https://cihatsoft.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-foreground/70 hover:text-white hover:border-green-500/40 hover:bg-green-500/10 transition-colors"
+            >
+              <Trophy className="h-3 w-3 text-green-400 group-hover:scale-110 transition-transform" />
+              <span>Siteyi yapan</span>
+              <span className="font-semibold text-foreground/90 group-hover:text-green-400">cihatsoft.com</span>
+            </a>
           </div>
         </div>
       </div>
