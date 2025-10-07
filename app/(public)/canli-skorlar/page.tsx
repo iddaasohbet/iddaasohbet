@@ -52,6 +52,8 @@ export default function CanliSkorlarPage() {
   const [todayFixtures, setTodayFixtures] = useState<Fixture[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [lastLiveFetchAt, setLastLiveFetchAt] = useState<number>(Date.now())
+  const [clockTick, setClockTick] = useState<number>(0)
   const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
   const previousScoresRef = useRef<Map<number, number>>(new Map())
@@ -150,6 +152,7 @@ export default function CanliSkorlarPage() {
         setPreviousScores(nextScores)
         previousScoresRef.current = nextScores
         setLastUpdate(new Date())
+        setLastLiveFetchAt(Date.now())
 
         if (goalHappened) void playGoalSound()
       }
@@ -186,13 +189,16 @@ export default function CanliSkorlarPage() {
       await Promise.all([fetchLiveScores(), fetchTodayScores()])
       setLoading(false)
     })()
-    // Refresh live every 15s
-    const liveId = setInterval(() => { void fetchLiveScores() }, 10000)
+    // Refresh live via API every 30s
+    const liveId = setInterval(() => { void fetchLiveScores() }, 30000)
+    // Local clock tick to advance elapsed between fetches
+    const tickId = setInterval(() => setClockTick((v) => v + 1), 15000)
     // Refresh today every 10 minutes
     const todayId = setInterval(fetchTodayScores, 600000)
     return () => {
       clearInterval(liveId)
       clearInterval(todayId)
+      clearInterval(tickId)
       window.removeEventListener('pointerdown', onAnyInput)
       window.removeEventListener('keydown', onAnyInput)
     }
@@ -233,6 +239,17 @@ export default function CanliSkorlarPage() {
   }
 
   // kickoff time chip removed for stability; will re-add after QA
+
+  const getDisplayedElapsed = (fx: Fixture): number | null => {
+    const base = fx?.fixture?.status?.elapsed
+    const phase = fx?.fixture?.status?.short
+    if (base == null) return null
+    const livePhases = new Set(['1H', '2H', 'ET', 'LIVE'])
+    if (!livePhases.has(phase)) return base
+    const deltaSec = Math.max(0, Math.floor((Date.now() - lastLiveFetchAt) / 1000))
+    const add = Math.floor(deltaSec / 60)
+    return base + add
+  }
 
   return (
     <div className="min-h-screen py-12">
@@ -302,8 +319,8 @@ export default function CanliSkorlarPage() {
                   {/* Status */}
                   <div className="col-span-2 flex items-center gap-2">
                     {getStatusBadge(fx.fixture.status.short)}
-                    {fx.fixture.status.elapsed ? (
-                      <span className="text-xs text-red-400 font-semibold">{fx.fixture.status.elapsed}'</span>
+                    {getDisplayedElapsed(fx) != null ? (
+                      <span className="text-xs text-red-400 font-semibold">{getDisplayedElapsed(fx)}'</span>
                     ) : null}
                   </div>
                   {/* Home */}
