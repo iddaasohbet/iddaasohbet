@@ -54,6 +54,7 @@ export default function CanliSkorlarPage() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [lastLiveFetchAt, setLastLiveFetchAt] = useState<number>(Date.now())
   const [clockTick, setClockTick] = useState<number>(0)
+  const elapsedSnapshotRef = useRef<Map<number, { elapsed: number, seenAt: number, phase: string }>>(new Map())
   const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
   const previousScoresRef = useRef<Map<number, number>>(new Map())
@@ -137,6 +138,15 @@ export default function CanliSkorlarPage() {
             recentGoalsRef.current.set(id, nowTs)
           }
           nextScores.set(id, sum)
+          // snapshot elapsed per fixture
+          const el = typeof fx.fixture.status.elapsed === 'number' ? fx.fixture.status.elapsed : null
+          if (el != null) {
+            elapsedSnapshotRef.current.set(id, {
+              elapsed: el,
+              seenAt: nowTs,
+              phase: fx.fixture.status.short,
+            })
+          }
         }
 
         // sort: recently scored first (by most recent), then keep original order
@@ -189,10 +199,10 @@ export default function CanliSkorlarPage() {
       await Promise.all([fetchLiveScores(), fetchTodayScores()])
       setLoading(false)
     })()
-    // Refresh live via API every 30s
-    const liveId = setInterval(() => { void fetchLiveScores() }, 30000)
-    // Local clock tick to advance elapsed between fetches
-    const tickId = setInterval(() => setClockTick((v) => v + 1), 15000)
+    // Refresh live via API every 15s (reduce lag)
+    const liveId = setInterval(() => { void fetchLiveScores() }, 15000)
+    // Local clock tick to advance elapsed between fetches (every 10s)
+    const tickId = setInterval(() => setClockTick((v) => v + 1), 10000)
     // Refresh today every 10 minutes
     const todayId = setInterval(fetchTodayScores, 600000)
     return () => {
@@ -241,14 +251,22 @@ export default function CanliSkorlarPage() {
   // kickoff time chip removed for stability; will re-add after QA
 
   const getDisplayedElapsed = (fx: Fixture): number | null => {
-    const base = fx?.fixture?.status?.elapsed
     const phase = fx?.fixture?.status?.short
-    if (base == null) return null
+    const base = typeof fx?.fixture?.status?.elapsed === 'number' ? fx.fixture.status.elapsed : null
+    const snap = elapsedSnapshotRef.current.get(fx.fixture.id)
     const livePhases = new Set(['1H', '2H', 'ET', 'LIVE'])
     if (!livePhases.has(phase)) return base
-    const deltaSec = Math.max(0, Math.floor((Date.now() - lastLiveFetchAt) / 1000))
-    const add = Math.floor(deltaSec / 60)
-    return base + add
+    if (snap && typeof snap.elapsed === 'number') {
+      const deltaSec = Math.max(0, Math.floor((Date.now() - snap.seenAt) / 1000))
+      const add = Math.floor(deltaSec / 60)
+      return snap.elapsed + add
+    }
+    if (base != null) {
+      const deltaSec = Math.max(0, Math.floor((Date.now() - lastLiveFetchAt) / 1000))
+      const add = Math.floor(deltaSec / 60)
+      return base + add
+    }
+    return null
   }
 
   return (
