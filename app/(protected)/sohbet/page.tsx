@@ -95,7 +95,7 @@ export default function LiveChatPage() {
         }
       } catch {}
     })()
-    const id = setInterval(fetchMessages, 5000)
+    const id = setInterval(fetchMessages, 3000)
     const pres = setInterval(async () => {
       try {
         const post = await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
@@ -106,7 +106,7 @@ export default function LiveChatPage() {
           setOnline(d.users || [])
         }
       } catch {}
-    }, 5000)
+    }, 3000)
     return () => { clearInterval(id); clearInterval(pres) }
   }, [])
 
