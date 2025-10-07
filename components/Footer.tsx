@@ -1,20 +1,7 @@
 import { Trophy, Twitter, Instagram, MessageCircle, Bot } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
-function useVisitCount() {
-  const [total, setTotal] = useState<number | null>(null)
-  useEffect(() => {
-    // Read current total
-    fetch('/api/stats/visit').then(r => r.json()).then(d => setTotal(d.total ?? 0)).catch(() => {})
-    // Increment on mount (fire and forget)
-    fetch('/api/stats/visit', { method: 'POST' }).then(r => r.json()).then(d => setTotal(d.total ?? 0)).catch(() => {})
-  }, [])
-  return total
-}
 import Link from 'next/link'
 
 export default function Footer() {
-  const totalVisits = useVisitCount()
   return (
     <footer className="relative border-t border-white/5 py-16 mt-20 overflow-hidden">
       {/* Background Pattern */}
@@ -93,7 +80,7 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs text-foreground/60">{totalVisits ?? 0} toplam ziyaret</span>
+                <span className="text-xs text-foreground/60">15,423 aktif kullanıcı</span>
               </div>
               <a href="/sohbet" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-wide text-foreground/70 hover:text-white hover:border-green-500/40 hover:bg-green-500/10 transition-colors">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-ping"></span>

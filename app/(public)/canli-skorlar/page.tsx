@@ -214,7 +214,7 @@ export default function CanliSkorlarPage() {
       case '1H':
       case '2H':
       case 'HT':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 animate-pulse">CANLI</Badge>
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">CANLI</Badge>
       case 'NS':
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Başlamadı</Badge>
       default:

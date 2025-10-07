@@ -208,15 +208,6 @@ model GoalState {
   createdAt  DateTime @default(now())
 }
 
-// Simple visit counter
-model SiteStat {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     Int      @default(0)
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-}
-
 model Follow {
   id            String    @id @default(cuid())
   
