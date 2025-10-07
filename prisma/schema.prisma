@@ -199,6 +199,15 @@ model ChatPresence {
   updatedAt     DateTime @updatedAt
 }
 
+// Tracks last known goal sum per live fixture to avoid duplicate bot messages
+model GoalState {
+  id         String   @id @default(cuid())
+  fixtureId  Int      @unique
+  lastSum    Int      @default(0)
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
 model Follow {
   id            String    @id @default(cuid())
   
