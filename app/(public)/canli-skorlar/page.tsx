@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Radio, Trophy, RefreshCw, Clock, CheckCircle } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Radio, Trophy, RefreshCw } from 'lucide-react'
 
 interface Fixture {
   fixture: {
@@ -45,46 +46,163 @@ interface Fixture {
 }
 
 export default function CanliSkorlarPage() {
-  const [fixtures, setFixtures] = useState<Fixture[]>([])
+  const [activeTab, setActiveTab] = useState<'live' | 'ns' | 'ft'>('live')
+  const [liveFixtures, setLiveFixtures] = useState<Fixture[]>([])
+  const [todayFixtures, setTodayFixtures] = useState<Fixture[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [previousScores, setPreviousScores] = useState<Map<number, number>>(new Map())
+  const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map()) // fixtureId -> timestamp
+  const audioCtxRef = useRef<AudioContext | null>(null)
 
-  const fetchScores = async (type: 'today' | 'live' | 'last' = 'live') => {
-    setLoading(true)
+  const ensureAudioContext = async () => {
+    if (typeof window === 'undefined') return null
     try {
-      // Önce istenen tür
-      const res = await fetch(`/api/live-scores?type=${type}`, { cache: 'no-store' })
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        await audioCtxRef.current.resume()
+      }
+      return audioCtxRef.current
+    } catch {
+      return null
+    }
+  }
+
+  const playGoalSound = async () => {
+    const ctx = await ensureAudioContext()
+    if (!ctx) return
+    try {
+      const oscillator = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+      oscillator.type = 'triangle'
+      oscillator.frequency.setValueAtTime(880, ctx.currentTime)
+      gainNode.gain.setValueAtTime(0.0001, ctx.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45)
+      oscillator.connect(gainNode).connect(ctx.destination)
+      oscillator.start()
+      oscillator.stop(ctx.currentTime + 0.48)
+    } catch {
+      // no-op
+    }
+  }
+
+  const fetchLiveScores = async () => {
+    try {
+      const res = await fetch(`/api/live-scores?type=live`, { cache: 'no-store' })
       const data = await res.json()
-      if (Array.isArray(data?.response) && data.response.length > 0) {
-        setFixtures(data.response)
-        setLastUpdate(new Date())
-      } else if (type !== 'last') {
-        // Fallback: son maçlar
-        const resLast = await fetch('/api/live-scores?type=last', { cache: 'no-store' })
-        const dataLast = await resLast.json()
-        if (Array.isArray(dataLast?.response)) {
-          setFixtures(dataLast.response)
-          setLastUpdate(new Date())
+      if (Array.isArray(data?.response)) {
+        const fetched: Fixture[] = data.response
+        const nowTs = Date.now()
+        // prune old recent goals (>20s)
+        setRecentGoals((prev) => {
+          const next = new Map(prev)
+          for (const [id, ts] of next) {
+            if (nowTs - ts > 20000) next.delete(id)
+          }
+          return next
+        })
+
+        // detect goals and update maps
+        let goalHappened = false
+        const nextScores = new Map(previousScores)
+        const indexMap = new Map<number, number>(fetched.map((fx, idx) => [fx.fixture.id, idx]))
+        for (const fx of fetched) {
+          const id = fx.fixture.id
+          const home = fx.goals.home ?? 0
+          const away = fx.goals.away ?? 0
+          const sum = home + away
+          const prevSum = previousScores.get(id)
+          if (prevSum != null && sum > prevSum) {
+            goalHappened = true
+            setRecentGoals((prev) => {
+              const next = new Map(prev)
+              next.set(id, nowTs)
+              return next
+            })
+          }
+          nextScores.set(id, sum)
         }
+
+        // sort: recently scored first (by most recent), then keep original order
+        const recentMap = new Map(recentGoals)
+        const sorted = [...fetched].sort((a, b) => {
+          const at = recentMap.get(a.fixture.id) ?? 0
+          const bt = recentMap.get(b.fixture.id) ?? 0
+          if (at !== bt) return bt - at
+          return (indexMap.get(a.fixture.id) ?? 0) - (indexMap.get(b.fixture.id) ?? 0)
+        })
+
+        setLiveFixtures(sorted)
+        setPreviousScores(nextScores)
+        setLastUpdate(new Date())
+
+        if (goalHappened) void playGoalSound()
       }
     } catch (error) {
       console.error('Failed to fetch live scores:', error)
-    } finally {
-      setLoading(false)
+    }
+  }
+
+  const fetchTodayScores = async () => {
+    try {
+      const res = await fetch(`/api/live-scores?type=today`, { cache: 'no-store' })
+      const data = await res.json()
+      if (Array.isArray(data?.response)) {
+        setTodayFixtures(data.response)
+        setLastUpdate(new Date())
+      }
+    } catch (error) {
+      console.error('Failed to fetch today scores:', error)
     }
   }
 
   useEffect(() => {
-    // Varsayılan: canlıyı dene, yoksa today
-    (async () => {
-      await fetchScores('live')
-      if (fixtures.length === 0) {
-        await fetchScores('today')
-      }
+    // Unlock audio context on first interaction to allow autoplay-like behavior
+    const onAnyInput = async () => {
+      await ensureAudioContext()
+      window.removeEventListener('pointerdown', onAnyInput)
+      window.removeEventListener('keydown', onAnyInput)
+    }
+    window.addEventListener('pointerdown', onAnyInput)
+    window.addEventListener('keydown', onAnyInput)
+
+    ;(async () => {
+      setLoading(true)
+      await Promise.all([fetchLiveScores(), fetchTodayScores()])
+      setLoading(false)
     })()
-    // Her 2 dakikada bir otomatik güncelle (canlı öncelikli)
-    const interval = setInterval(() => fetchScores('live'), 120000)
-    return () => clearInterval(interval)
+    // Refresh live every 2 minutes
+    const liveId = setInterval(fetchLiveScores, 120000)
+    // Refresh today every 10 minutes
+    const todayId = setInterval(fetchTodayScores, 600000)
+    return () => {
+      clearInterval(liveId)
+      clearInterval(todayId)
+      window.removeEventListener('pointerdown', onAnyInput)
+      window.removeEventListener('keydown', onAnyInput)
+    }
+  }, [])
+
+  // Drop goal highlights after 20s to stop blinking
+  useEffect(() => {
+    const id = setInterval(() => {
+      setRecentGoals((prev) => {
+        const nowTs = Date.now()
+        let changed = false
+        const next = new Map(prev)
+        for (const [fid, ts] of next) {
+          if (nowTs - ts > 20000) {
+            next.delete(fid)
+            changed = true
+          }
+        }
+        return changed ? next : prev
+      })
+    }, 1000)
+    return () => clearInterval(id)
   }, [])
 
   const getStatusBadge = (status: string) => {
@@ -126,24 +244,9 @@ export default function CanliSkorlarPage() {
           </div>
           <div className="flex gap-3">
             <Button
-              onClick={() => fetchScores('today')}
-              disabled={loading}
-              variant="outline"
-              className="border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              Bugün
-            </Button>
-            <Button
-              onClick={() => fetchScores('live')}
-              disabled={loading}
-              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
-            >
-              <Radio className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : 'animate-pulse'}`} />
-              Canlı Maçlar
-            </Button>
-            <Button
-              onClick={() => fetchScores('today')}
+              onClick={async () => {
+                await Promise.all([fetchLiveScores(), fetchTodayScores()])
+              }}
               disabled={loading}
               variant="outline"
               className="border-white/10 hover:border-blue-500/50"
@@ -153,18 +256,32 @@ export default function CanliSkorlarPage() {
           </div>
         </div>
 
-        {/* Matches List - Single row style */}
-        {loading && fixtures.length === 0 ? (
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger value="live" className="data-[state=active]:bg-red-500/10 data-[state=active]:text-red-400">Canlı</TabsTrigger>
+            <TabsTrigger value="ns" className="data-[state=active]:bg-yellow-500/10 data-[state=active]:text-yellow-400">Başlamadı</TabsTrigger>
+            <TabsTrigger value="ft" className="data-[state=active]:bg-green-500/10 data-[state=active]:text-green-400">Bitti</TabsTrigger>
+          </TabsList>
+
+          {/* Matches List */}
+          {loading && liveFixtures.length === 0 && todayFixtures.length === 0 ? (
           <div className="space-y-2">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="h-12 w-full rounded-lg bg-white/5 animate-pulse"></div>
             ))}
           </div>
-        ) : fixtures.length > 0 ? (
-          <Card className="glass-dark border-white/10 overflow-hidden">
-            <div className="divide-y divide-white/10">
-              {fixtures.map((fx) => (
-                <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+          ) : (
+          <>
+          <TabsContent value="live">
+            {liveFixtures.length > 0 ? (
+            <Card className="glass-dark border-white/10 overflow-hidden">
+              <div className="divide-y divide-white/10">
+                {liveFixtures.map((fx) => {
+                const highlightTs = recentGoals.get(fx.fixture.id)
+                const isHighlighted = typeof highlightTs === 'number' && Date.now() - highlightTs <= 20000
+                return (
+                <div key={fx.fixture.id} className={`grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition ${isHighlighted ? 'goal-blink' : ''}`}>
                   {/* Status */}
                   <div className="col-span-2 flex items-center gap-2">
                     {getStatusBadge(fx.fixture.status.short)}
@@ -178,7 +295,7 @@ export default function CanliSkorlarPage() {
                     <span className="truncate">{fx.teams.home.name}</span>
                   </div>
                   {/* Score */}
-                  <div className="col-span-2 text-center font-bold">
+                  <div className={`col-span-2 text-center font-bold ${isHighlighted ? 'score-blink' : ''}`}>
                     {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
                   </div>
                   {/* Away */}
@@ -187,21 +304,106 @@ export default function CanliSkorlarPage() {
                     <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
-        ) : (
-          <Card className="glass-dark border-white/10 p-12 text-center">
-            <div className="flex flex-col items-center space-y-4">
-               <Trophy className="h-16 w-16 text-foreground/30" />
-               <div>
-                 <h3 className="text-xl font-semibold mb-2">Maç Bulunamadı</h3>
-                 <p className="text-foreground/60">Şu anda gösterilecek maç bulunmuyor.</p>
-               </div>
-            </div>
-          </Card>
-        )}
+                )})}
+              </div>
+            </Card>
+            ) : (
+              <Card className="glass-dark border-white/10 p-12 text-center">
+                <div className="flex flex-col items-center space-y-4">
+                   <Trophy className="h-16 w-16 text-foreground/30" />
+                   <div>
+                     <h3 className="text-xl font-semibold mb-2">Canlı Maç Bulunamadı</h3>
+                     <p className="text-foreground/60">Şu anda canlı maç bulunmuyor.</p>
+                   </div>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="ns">
+            {todayFixtures.filter((f) => f.fixture.status.short === 'NS').length > 0 ? (
+            <Card className="glass-dark border-white/10 overflow-hidden">
+              <div className="divide-y divide-white/10">
+                {todayFixtures.filter((f) => f.fixture.status.short === 'NS').map((fx) => (
+                  <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+                    <div className="col-span-2 flex items-center gap-2">
+                      {getStatusBadge(fx.fixture.status.short)}
+                    </div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0">
+                      <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                      <span className="truncate">{fx.teams.home.name}</span>
+                    </div>
+                    <div className="col-span-2 text-center font-bold">-</div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
+                      <span className="truncate text-right">{fx.teams.away.name}</span>
+                      <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            ) : (
+              <Card className="glass-dark border-white/10 p-12 text-center">
+                <div className="flex flex-col items-center space-y-4">
+                   <Trophy className="h-16 w-16 text-foreground/30" />
+                   <div>
+                     <h3 className="text-xl font-semibold mb-2">Başlamamış Maç Bulunamadı</h3>
+                     <p className="text-foreground/60">Bugün için başlamamış maç yok.</p>
+                   </div>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="ft">
+            {todayFixtures.filter((f) => f.fixture.status.short === 'FT').length > 0 ? (
+            <Card className="glass-dark border-white/10 overflow-hidden">
+              <div className="divide-y divide-white/10">
+                {todayFixtures.filter((f) => f.fixture.status.short === 'FT').map((fx) => (
+                  <div key={fx.fixture.id} className="grid grid-cols-12 items-center h-14 px-3 hover:bg-white/5 transition">
+                    <div className="col-span-2 flex items-center gap-2">
+                      {getStatusBadge(fx.fixture.status.short)}
+                    </div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0">
+                      <img src={fx.teams.home.logo} alt={fx.teams.home.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                      <span className="truncate">{fx.teams.home.name}</span>
+                    </div>
+                    <div className="col-span-2 text-center font-bold">
+                      {(fx.goals.home ?? '-')}{' '}-{' '}{(fx.goals.away ?? '-')}
+                    </div>
+                    <div className="col-span-4 flex items-center gap-2 min-w-0 justify-end">
+                      <span className="truncate text-right">{fx.teams.away.name}</span>
+                      <img src={fx.teams.away.logo} alt={fx.teams.away.name} className="h-5 w-5 object-contain" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            ) : (
+              <Card className="glass-dark border-white/10 p-12 text-center">
+                <div className="flex flex-col items-center space-y-4">
+                   <Trophy className="h-16 w-16 text-foreground/30" />
+                   <div>
+                     <h3 className="text-xl font-semibold mb-2">Bitmiş Maç Bulunamadı</h3>
+                     <p className="text-foreground/60">Bugün için bitmiş maç yok.</p>
+                   </div>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+          </>
+          )}
+        </Tabs>
       </div>
+      <style jsx>{`
+        @keyframes goalFlash {
+          0% { background-color: rgba(34, 197, 94, 0.10); }
+          50% { background-color: rgba(34, 197, 94, 0.28); }
+          100% { background-color: rgba(34, 197, 94, 0.10); }
+        }
+        .goal-blink { animation: goalFlash 1s ease-in-out infinite; }
+        .score-blink { color: #22c55e; text-shadow: 0 0 8px rgba(34, 197, 94, 0.7); }
+      `}</style>
     </div>
   )
 }
