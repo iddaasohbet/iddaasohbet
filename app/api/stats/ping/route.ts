@@ -15,10 +15,11 @@ export async function POST(request: NextRequest) {
       CREATE TABLE IF NOT EXISTS site_presence (
         id BIGINT NOT NULL AUTO_INCREMENT,
         ip VARCHAR(191) NOT NULL,
-        ua TEXT NULL,
+        ua VARCHAR(191) NULL,
         lastActive DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
         PRIMARY KEY (id),
-        UNIQUE KEY uniq_ip_ua (ip, (CASE WHEN ua IS NULL THEN '' ELSE LEFT(ua, 191) END))
+        UNIQUE KEY uniq_ip_ua (ip, ua),
+        INDEX lastActive_idx (lastActive)
       ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     `)
 
