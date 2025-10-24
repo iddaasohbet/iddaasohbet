@@ -15,6 +15,9 @@ export default function FooterStats() {
       fetch('/api/stats/visit', { method: 'POST' }).catch(() => {})
       localStorage.setItem(key, today)
     }
+    // presence heartbeat (keeps online counter fresh)
+    const ping = () => fetch('/api/stats/ping', { method: 'POST' }).catch(() => {})
+    ping()
     const load = async () => {
       try {
         const [o, t] = await Promise.all([
@@ -26,7 +29,7 @@ export default function FooterStats() {
       } catch {}
     }
     load()
-    const id = setInterval(load, 5000)
+    const id = setInterval(() => { load(); ping() }, 5000)
     return () => clearInterval(id)
   }, [])
 
