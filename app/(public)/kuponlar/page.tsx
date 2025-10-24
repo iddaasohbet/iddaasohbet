@@ -61,7 +61,7 @@ export default function KuponlarPage() {
       })
     : coupons
 
-  // Show loading while checking auth
+  // Show loading
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -82,8 +82,8 @@ export default function KuponlarPage() {
           <p className="text-foreground/60">Kullanıcıların paylaştığı tüm kuponları incele</p>
         </div>
 
-        {/* Filters - Blurred for unauthenticated */}
-        <div className={`flex flex-col md:flex-row gap-4 mb-8 ${status === 'unauthenticated' ? 'blur-sm pointer-events-none' : ''}`}>
+        {/* Filters */}
+        <div className={`flex flex-col md:flex-row gap-4 mb-8`}>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground/50" />
             <Input
@@ -143,8 +143,8 @@ export default function KuponlarPage() {
           </div>
         </div>
 
-        {/* Coupons Grid - Blurred for unauthenticated */}
-        <div className={status === 'unauthenticated' ? 'blur-md pointer-events-none select-none' : ''}>
+        {/* Coupons Grid */}
+        <div>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -205,34 +205,7 @@ export default function KuponlarPage() {
         )}
         </div>
 
-        {/* Auth Overlay for Unauthenticated Users */}
-        {status === 'unauthenticated' && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 pointer-events-auto">
-            <Card className="glass-dark border-white/10 p-8 max-w-md mx-4 text-center">
-              <div className="mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
-                  <Lock className="h-8 w-8 text-green-400" />
-                </div>
-                <h3 className="text-2xl font-bold gradient-text mb-2">Kuponları Görmek İçin Giriş Yapın</h3>
-                <p className="text-foreground/70">
-                  Kullanıcıların paylaştığı kuponları görebilmek ve detaylarına erişebilmek için üye olun.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/giris">
-                  <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-6">
-                    Giriş Yap
-                  </Button>
-                </Link>
-                <Link href="/kayit">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-6">
-                    Kayıt Ol
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          </div>
-        )}
+        {/* Auth overlay kaldırıldı - herkes görebilir */}
       </div>
     </div>
   )

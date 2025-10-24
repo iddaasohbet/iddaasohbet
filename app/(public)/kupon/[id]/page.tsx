@@ -33,15 +33,10 @@ export default function KuponDetayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/giris')
-    }
-  }, [status, router])
+  // Detayı herkese aç: redirect kaldırıldı
 
   useEffect(() => {
-    if (!id || status !== 'authenticated') return
+    if (!id) return
     
     fetch(`/api/kuponlar/${id}`)
       .then(res => {
@@ -71,38 +66,7 @@ export default function KuponDetayPage() {
     )
   }
 
-  // Show auth required message
-  if (status === 'unauthenticated') {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <Card className="glass-dark border-white/10 p-12 text-center">
-            <div className="mb-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500/20 to-yellow-400/20 mb-4">
-                <Lock className="h-10 w-10 text-green-400" />
-              </div>
-              <h1 className="text-3xl font-bold gradient-text mb-2">Kupon Detayını Görmek İçin Giriş Yapın</h1>
-              <p className="text-foreground/60 text-lg">
-                Kupon detaylarını görebilmek için üye olmanız gerekmektedir.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/giris">
-                <Button variant="outline" className="w-full sm:w-auto border-white/10 hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-400 h-12 px-8">
-                  Giriş Yap
-                </Button>
-              </Link>
-              <Link href="/kayit">
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-semibold h-12 px-8">
-                  Kayıt Ol
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-      </div>
-    )
-  }
+  // Giriş zorunluluğu kaldırıldı; herkes görebilir
 
   if (error || !coupon) {
     return (

@@ -139,9 +139,7 @@ export default function LiveChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }
 
-  useEffect(() => {
-    if (status === 'unauthenticated') router.push('/giris')
-  }, [status])
+  // Üyeliksiz görüntüleme serbest; yönlendirme kaldırıldı
 
   const fetchMessages = async (opts?: { cursor?: string }) => {
     try {
@@ -195,29 +193,45 @@ export default function LiveChatPage() {
   useEffect(() => {
     fetchMessages()
     // İlk girişte hemen heartbeat gönder ve listeyi çek
-    ;(async () => {
-      try {
-        await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
-        const r = await fetch('/api/chat/presence', { cache: 'no-store' })
-        if (r.ok) {
-          const d = await r.json()
-          setOnline(d.users || [])
-        }
-      } catch {}
-    })()
+    if ((session?.user as any)?.id) {
+      ;(async () => {
+        try {
+          await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+          const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+          if (r.ok) {
+            const d = await r.json()
+            setOnline(d.users || [])
+          }
+        } catch {}
+      })()
+    } else {
+      // Üyeliksiz kullanıcılar için sadece listeyi çek
+      ;(async () => {
+        try {
+          const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+          if (r.ok) {
+            const d = await r.json()
+            setOnline(d.users || [])
+          }
+        } catch {}
+      })()
+    }
     const id = setInterval(fetchMessages, 3000)
-    const pres = setInterval(async () => {
-      try {
-        const post = await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
-        if (!post.ok) return
-        const r = await fetch('/api/chat/presence', { cache: 'no-store' })
-        if (r.ok) {
-          const d = await r.json()
-          setOnline(d.users || [])
-        }
-      } catch {}
-    }, 3000)
-    return () => { clearInterval(id); clearInterval(pres) }
+    let pres: any
+    if ((session?.user as any)?.id) {
+      pres = setInterval(async () => {
+        try {
+          const post = await fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: false }) })
+          if (!post.ok) return
+          const r = await fetch('/api/chat/presence', { cache: 'no-store' })
+          if (r.ok) {
+            const d = await r.json()
+            setOnline(d.users || [])
+          }
+        } catch {}
+      }, 3000)
+    }
+    return () => { clearInterval(id); if (pres) clearInterval(pres) }
   }, [])
 
   // Her mesaj geldiğinde otomatik aşağı kaydır
@@ -577,7 +591,9 @@ export default function LiveChatPage() {
                     setValue(e.target.value)
                     setIsTyping(true)
                     // typing ping (fire-and-forget)
-                    fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: true }) }).catch(() => {})
+                    if ((session?.user as any)?.id) {
+                      fetch('/api/chat/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ typing: true }) }).catch(() => {})
+                    }
                   }}
                   onKeyDown={(e) => { 
                     if (e.key === 'Enter') {
@@ -587,8 +603,9 @@ export default function LiveChatPage() {
                   }}
                   onBlur={() => setIsTyping(false)}
                   className="glass-dark border-white/10"
+                  disabled={!session?.user}
                 />
-                <Button onClick={send} disabled={sending || !value.trim()} className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-semibold">
+                <Button onClick={send} disabled={sending || !value.trim() || !session?.user} className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-semibold">
                   <Send className="h-4 w-4 mr-1" /> Gönder
                 </Button>
               </div>
@@ -596,6 +613,14 @@ export default function LiveChatPage() {
           </Card>
         </div>
       </div>
+
+      {!session?.user && (
+        <div className="container mx-auto px-4 mt-2">
+          <div className="text-center text-xs text-foreground/60">
+            Sohbeti görüntüleyebilirsin; mesaj yazmak için lütfen giriş yap.
+          </div>
+        </div>
+      )}
 
       {/* Admin Menu Modal */}
       {showAdminMenu && (
