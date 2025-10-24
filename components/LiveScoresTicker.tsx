@@ -21,6 +21,7 @@ export default function LiveScoresTicker() {
   const [loading, setLoading] = useState(true)
   const [recentGoals, setRecentGoals] = useState<Map<number, number>>(new Map())
   const previousMapRef = useRef<Map<number, number>>(new Map())
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   const fetchLive = async () => {
     try {
@@ -45,6 +46,22 @@ export default function LiveScoresTicker() {
         const old = prev.get(id)
         if (old != null && sum > old) {
           setRecentGoals((p) => { const n = new Map(p); n.set(id, nowTs); return n })
+          // Try play goal sound
+          try {
+            const el = audioRef.current
+            if (el) {
+              el.currentTime = 0
+              el.play().catch(() => {})
+            } else {
+              // Fallback beep (WebAudio)
+              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+              const o = ctx.createOscillator(); const g = ctx.createGain();
+              o.type = 'triangle'; o.frequency.value = 880; g.gain.setValueAtTime(0.001, ctx.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01)
+              o.connect(g).connect(ctx.destination); o.start();
+              setTimeout(() => { g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.stop(ctx.currentTime + 0.25); }, 180)
+            }
+          } catch {}
         }
         nextPrev.set(id, sum)
       }
@@ -87,7 +104,7 @@ export default function LiveScoresTicker() {
   )
 
   return (
-    <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-red-950/10 to-black/40 backdrop-blur-sm">
+    <div className="border-b border-white/5 bg-gradient-to-r from-black/40 via-red-950/10 to-black/40 backdrop-blur-sm" onClick={() => audioRef.current?.play().catch(() => {})}>
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-6 h-12 overflow-hidden">
           {renderLabel}
@@ -125,6 +142,8 @@ export default function LiveScoresTicker() {
           </div>
         </div>
       </div>
+      {/* Goal sound element (provide /sounds/goal.mp3 for custom sound). */}
+      <audio ref={audioRef} src="/sounds/goal.mp3" preload="auto" playsInline />
       <style jsx>{`
         @keyframes scroll {
           0% { transform: translateX(0); }
