@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Header from '@/components/Header'
 import CookieConsent from '@/components/CookieConsent'
@@ -8,6 +9,12 @@ import Link from 'next/link'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  // Register Service Worker for PWA (only in production browsers)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+  }, [])
   
   // Admin sayfalarında PublicLayout render etme
   if (pathname?.startsWith('/admin')) {

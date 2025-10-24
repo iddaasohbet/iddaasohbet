@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Header from '@/components/Header'
 import CookieConsent from '@/components/CookieConsent'
@@ -9,6 +10,12 @@ import Link from 'next/link'
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdminPage = pathname?.startsWith('/admin')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+  }, [])
 
   if (isAdminPage) {
     return <>{children}</>
