@@ -125,6 +125,7 @@ export default function LiveChatPage() {
   const [dmWindow, setDmWindow] = useState<{userId: string; username: string} | null>(null)
   const [userCoupons, setUserCoupons] = useState<any[]>([])
   const [isTyping, setIsTyping] = useState(false)
+  const [autoScroll, setAutoScroll] = useState(true)
   const [profileTab, setProfileTab] = useState<'about' | 'stats' | 'actions'>('about')
   const bottomRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -132,11 +133,10 @@ export default function LiveChatPage() {
   const prevMsgCountRef = useRef(0)
 
   const scrollToBottom = () => {
-    // Mobilde yazarken scroll yapma
-    if (isTyping) return
+    // Yazarken veya kullanıcı manuel kaydırırken otomatik scroll yapma
+    if (isTyping || !autoScroll) return
     const el = listRef.current
     if (el) el.scrollTop = el.scrollHeight
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }
 
   // Üyeliksiz görüntüleme serbest; yönlendirme kaldırıldı
@@ -234,16 +234,16 @@ export default function LiveChatPage() {
     return () => { clearInterval(id); if (pres) clearInterval(pres) }
   }, [])
 
-  // Her mesaj geldiğinde otomatik aşağı kaydır
+  // Her mesaj geldiğinde otomatik aşağı kaydır (kullanıcı alt kısma yakınsa)
   useEffect(() => {
-    // Her yeni mesajda zorla en alta in
     const id = requestAnimationFrame(() => {
-      const el = listRef.current
-      if (el) el.scrollTop = el.scrollHeight
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      if (autoScroll) {
+        const el = listRef.current
+        if (el) el.scrollTop = el.scrollHeight
+      }
     })
     return () => cancelAnimationFrame(id)
-  }, [messages.length])
+  }, [messages.length, autoScroll])
 
   const send = async () => {
     const text = value.trim()
@@ -373,7 +373,13 @@ export default function LiveChatPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3 scroll-smooth">
+              <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3 scroll-smooth"
+                   onScroll={(e) => {
+                     const el = e.currentTarget
+                     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+                     // Alt kısma yakınsa autoscroll açık, değilse kapalı
+                     setAutoScroll(distanceFromBottom < 40)
+                   }}>
               {/* Tarih ayırıcıları ve gruplama basit versiyon */}
               {messages.map((m, idx) => {
                 const prev = messages[idx - 1]
