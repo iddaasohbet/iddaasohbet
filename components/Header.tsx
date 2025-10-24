@@ -177,14 +177,6 @@ export default function Header() {
           ) : (
             // Giriş yapmamış kullanıcı
             <>
-              <Link href="/sohbet" className="md:hidden">
-                <Button 
-                  variant="ghost" 
-                  className="hover:text-green-400 hover:bg-white/5 transition-all flex items-center gap-1"
-                >
-                  <Radio className="h-4 w-4 text-red-500" /> Sohbet
-                </Button>
-              </Link>
               <Link href="/giris" className="hidden md:block">
                 <Button 
                   variant="outline" 

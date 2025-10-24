@@ -275,10 +275,10 @@ export default function LiveChatPage() {
   if (status === 'loading') return null
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-64px-400px)]">
+    <div className="container mx-auto px-0 md:px-4 py-8 min-h-[calc(100vh-64px-400px)]">
       <div className="grid grid-cols-12 gap-6">
-        {/* Online Users Sidebar */}
-        <div className="col-span-12 md:col-span-3">
+        {/* Online Users Sidebar - hide on mobile */}
+        <div className="hidden md:block md:col-span-3">
           <Card className="glass-dark border-white/10">
             <CardHeader className="border-b border-white/5 py-3">
               <CardTitle className="text-sm">Çevrimiçi</CardTitle>
