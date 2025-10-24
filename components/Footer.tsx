@@ -1,5 +1,8 @@
 import { Trophy, Twitter, Instagram, MessageCircle, Bot } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const FooterStats = dynamic(() => import('./FooterStats'), { ssr: false })
 
 export default function Footer() {
   return (
@@ -73,6 +76,8 @@ export default function Footer() {
 
         {/* Bottom Section */}
         <div className="pt-8 border-t border-white/5">
+          {/* Live stats: online users & total visits */}
+          <FooterStats />
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-foreground/60 text-center md:text-left">
               © 2025 İddaaSohbet. Tüm hakları saklıdır.
