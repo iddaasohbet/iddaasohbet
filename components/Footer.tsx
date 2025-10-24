@@ -1,8 +1,6 @@
 import { Trophy, Twitter, Instagram, MessageCircle, Bot } from 'lucide-react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
-
-const FooterStats = dynamic(() => import('./FooterStats'), { ssr: false })
+import FooterStats from './FooterStats'
 
 export default function Footer() {
   return (
