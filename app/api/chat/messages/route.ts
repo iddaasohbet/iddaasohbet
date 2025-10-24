@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await request.json()
-    const { content, channel = 'genel', parentId = null } = body || {}
+    const { content, channel = 'genel', parentId = null, couponId = null } = body || {}
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Empty content' }, { status: 400 })
     }
@@ -88,10 +88,11 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         channelId: ch.id,
         parentId: parentId || undefined,
+        couponId: couponId || undefined,
         content: text
       },
       include: {
-        user: { select: { id: true, username: true, name: true, avatar: true } }
+        user: { select: { id: true, username: true, name: true, avatar: true, role: true } }
       }
     })
     return NextResponse.json({ message: msg })

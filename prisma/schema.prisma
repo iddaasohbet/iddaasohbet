@@ -37,6 +37,8 @@ model User {
   chatMessages  ChatMessage[]
   chatPresence  ChatPresence?
   chatReactions ChatReaction[]
+  sentMessages  DirectMessage[] @relation("MessagesSent")
+  receivedMessages DirectMessage[] @relation("MessagesReceived")
   bansGiven     UserBan[] @relation("BansGiven")
   bansReceived  UserBan[] @relation("BansReceived")
   mutesGiven    UserMute[] @relation("MutesGiven")
@@ -169,6 +171,7 @@ model ChatMessage {
   parentId   String?
   parent     ChatMessage?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies    ChatMessage[] @relation("MessageReplies")
+  couponId   String?       // Paylaşılan kupon ID'si
   content    String        @db.Text
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
@@ -267,4 +270,24 @@ model UserMute {
   reason    String?  @db.Text
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model DirectMessage {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  
+  senderId    String
+  sender      User     @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId  String
+  receiver    User     @relation("MessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  read        Boolean  @default(false)
+  readAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, read])
 }

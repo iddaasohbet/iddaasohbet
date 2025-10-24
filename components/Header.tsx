@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X, Home, BarChart3, Users, Radio } from 'lucide-react'
+import DmUnreadBell from './DmUnreadBell'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
@@ -106,6 +107,7 @@ export default function Header() {
             <Search className="h-5 w-5" />
           </Button>
           
+          <DmUnreadBell />
           {status === 'loading' ? (
             <div className="h-8 w-8 rounded-full animate-pulse bg-white/10"></div>
           ) : session ? (

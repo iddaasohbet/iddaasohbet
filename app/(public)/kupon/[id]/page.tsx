@@ -1,3 +1,4 @@
+// Dinamik meta için server bileşen versiyonu yanına eklenebilir
 'use client'
 
 import { useEffect, useState } from 'react'

@@ -95,10 +95,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <p className="text-sm text-foreground/60 text-center md:text-left">
                 © 2025 İddaaSohbet. Tüm hakları saklıdır.
               </p>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs text-foreground/60">15,423 aktif kullanıcı</span>
-              </div>
             </div>
             <div className="mt-4 glass-dark p-4 rounded-lg border border-yellow-400/20">
               <p className="text-xs text-center text-yellow-400 font-medium">

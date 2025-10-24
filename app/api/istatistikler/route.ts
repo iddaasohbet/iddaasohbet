@@ -19,7 +19,7 @@ export async function GET() {
 
     // Toplam kullanıcı
     const totalUsers = await prisma.user.count()
-    const activeUsers = await prisma.user.count({
+    const realActiveUsers = await prisma.user.count({
       where: {
         coupons: {
           some: {
@@ -28,6 +28,8 @@ export async function GET() {
         }
       }
     })
+    // Gerçek aktif kullanıcılara 30 sahte kullanıcı ekle
+    const activeUsers = realActiveUsers + 30
 
     // Toplam yorum
     const totalComments = await prisma.comment.count()

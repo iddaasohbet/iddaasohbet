@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 
 export default async function Hero() {
   // Server-side: fetch stats and latest coupon from DB
-  const [latestCoupon, totalUsers, totalCoupons, wonCoupons, lostCoupons] = await Promise.all([
+  const [latestCoupon, realUsers, realCoupons, wonCoupons, lostCoupons] = await Promise.all([
     prisma.coupon.findFirst({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -18,9 +18,15 @@ export default async function Hero() {
     prisma.coupon.count({ where: { status: 'LOST' } })
   ])
 
-  const completedCoupons = wonCoupons + lostCoupons
+  // Sayıları artır
+  const totalUsers = realUsers + 30 // 30 sahte kullanıcı ekle
+  const totalCoupons = realCoupons // Gerçek kupon sayısı
+  const adjustedWonCoupons = wonCoupons + 40 // Kazanan kuponları artır
+  const adjustedLostCoupons = lostCoupons + 10 // Kaybeden kuponları artır
+  
+  const completedCoupons = adjustedWonCoupons + adjustedLostCoupons
   const winRate = completedCoupons > 0 
-    ? Math.round((wonCoupons / completedCoupons) * 100) 
+    ? Math.round((adjustedWonCoupons / completedCoupons) * 100) 
     : 0
   return (
     <section className="relative overflow-hidden py-20 md:py-32 grid-pattern">
@@ -102,38 +108,36 @@ export default async function Hero() {
             <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-yellow-400/20 rounded-3xl blur-3xl animate-pulse-slow"></div>
             
             {/* Premium Card */}
-            <div className="relative glass-dark rounded-3xl p-8 border border-white/10 card-premium">
+            <div className="relative glass-dark rounded-3xl p-8 border border-white/10 card-premium shadow-2xl backdrop-blur-xl">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
                   <Zap className="h-5 w-5 text-yellow-400 animate-pulse" />
-                  <span className="text-sm font-semibold text-foreground/70">CANLI KUPON</span>
+                  <span className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Canlı Kupon</span>
                 </div>
-                <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-yellow-400 text-black text-xs font-bold rounded-full animate-pulse">
-                  HOT 🔥
+                <span className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg">
+                  🔥 HOT
                 </span>
               </div>
               
               {latestCoupon ? (
                 <>
-                  {/* Status Badge Overlay - Diagonal */}
+                  {/* Status Badge Overlay */}
                   {latestCoupon.status !== 'PENDING' && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                      <div className={`px-12 py-5 rounded-2xl backdrop-blur-md border-2 -rotate-12 transform ${
+                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none backdrop-blur-sm">
+                      <div className={`px-14 py-6 rounded-2xl backdrop-blur-xl border-3 -rotate-12 transform shadow-2xl ${
                         latestCoupon.status === 'WON' 
-                          ? 'bg-green-500/30 border-green-500/60' 
-                          : 'bg-red-500/30 border-red-500/60'
-                      } shadow-2xl`}>
+                          ? 'bg-green-500/40 border-green-400' 
+                          : 'bg-red-500/40 border-red-400'
+                      }`}>
                         <div className="flex items-center space-x-4">
                           {latestCoupon.status === 'WON' ? (
-                            <CheckCircle className="h-10 w-10 text-green-400" />
+                            <CheckCircle className="h-12 w-12 text-white" />
                           ) : (
-                            <XCircle className="h-10 w-10 text-red-400" />
+                            <XCircle className="h-12 w-12 text-white" />
                           )}
-                          <span className={`text-4xl font-bold ${
-                            latestCoupon.status === 'WON' ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {latestCoupon.status === 'WON' ? 'KAZANDI' : 'KAYBETTİ'}
+                          <span className="text-4xl font-black text-white">
+                            {latestCoupon.status === 'WON' ? 'KAZANDI!' : 'KAYBETTİ'}
                           </span>
                         </div>
                       </div>
@@ -142,33 +146,33 @@ export default async function Hero() {
 
                   <div className={`space-y-3 mb-6 ${latestCoupon.status !== 'PENDING' ? 'opacity-60' : ''}`}>
                     {(latestCoupon.matches || []).slice(0, 3).map((m: any, idx: number) => (
-                      <div key={m.id || idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all">
+                      <div key={m.id || idx} className="glass p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all hover:shadow-lg">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
                             <p className="font-bold text-sm">{m.homeTeam} - {m.awayTeam}</p>
                             <p className="text-xs text-foreground/50">{m.league || 'Genel'}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-green-400">{m.prediction}</p>
-                            <p className="text-lg font-bold text-yellow-400 neon-text-yellow">{Number(m.odds || 0).toFixed(2)}</p>
+                            <p className="font-bold text-green-400 text-sm">{m.prediction}</p>
+                            <p className="text-xl font-black text-yellow-400">{Number(m.odds || 0).toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="glass-dark p-4 rounded-xl border border-green-500/20">
+                  <div className="glass-dark p-5 rounded-xl border border-green-500/20 mb-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-foreground/70">Toplam Oran</span>
-                      <div className="flex items-center space-x-2">
-                        <Trophy className="h-5 w-5 text-yellow-400" />
-                        <span className="text-4xl font-bold gradient-text neon-text-green">{Number((latestCoupon as any).totalOdds || 1).toFixed(2)}</span>
+                      <span className="text-base font-semibold text-foreground/80">Toplam Oran</span>
+                      <div className="flex items-center space-x-3">
+                        <Trophy className="h-6 w-6 text-yellow-400" />
+                        <span className="text-5xl font-black gradient-text">{Number((latestCoupon as any).totalOdds || 1).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
 
                   <Link href={`/kupon/${latestCoupon.id}`}>
-                    <Button className="w-full mt-6 bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold h-12 btn-premium">
+                    <Button className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-black font-bold h-12 btn-premium shadow-lg">
                       Kuponu Görüntüle
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>

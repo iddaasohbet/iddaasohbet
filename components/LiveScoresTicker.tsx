@@ -130,8 +130,14 @@ export default function LiveScoresTicker() {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        .animate-scroll { animation: scroll 30s linear infinite; }
+        .animate-scroll { animation: scroll 15s linear infinite; }
         .animate-scroll:hover { animation-play-state: paused; }
+        
+        /* Mobilde daha hızlı */
+        @media (max-width: 768px) {
+          .animate-scroll { animation: scroll 8s linear infinite; }
+        }
+        
         .score-blink { color: #22c55e; text-shadow: 0 0 8px rgba(34, 197, 94, 0.7); }
       `}</style>
     </div>

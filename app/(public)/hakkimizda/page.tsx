@@ -17,10 +17,10 @@ import {
 import Link from 'next/link'
 
 const stats = [
-  { label: 'Aktif Kullanıcı', value: '15,000+', icon: Users, color: 'text-green-400' },
-  { label: 'Paylaşılan Kupon', value: '50,000+', icon: Trophy, color: 'text-yellow-400' },
-  { label: 'Başarı Oranı', value: '%73', icon: Target, color: 'text-blue-400' },
-  { label: 'Toplam Kazanç', value: '₺2.4M+', icon: TrendingUp, color: 'text-purple-400' }
+  { label: 'Aktif Kullanıcı', value: '18,500+', icon: Users, color: 'text-green-400' },
+  { label: 'Paylaşılan Kupon', value: '75,000+', icon: Trophy, color: 'text-yellow-400' },
+  { label: 'Başarı Oranı', value: '%78', icon: Target, color: 'text-blue-400' },
+  { label: 'Toplam Kazanç', value: '₺3.2M+', icon: TrendingUp, color: 'text-purple-400' }
 ]
 
 const features = [

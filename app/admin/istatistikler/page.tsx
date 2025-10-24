@@ -22,9 +22,9 @@ import {
 export default function AdminIstatistiklerPage() {
   const stats = [
     { label: 'Toplam Gelir', value: '₺234,567', change: '+12.5%', trend: 'up', icon: DollarSign, color: 'green' },
-    { label: 'Aktif Kullanıcı', value: '5,892', change: '+8.2%', trend: 'up', icon: Users, color: 'blue' },
-    { label: 'Günlük Ziyaretçi', value: '15,423', change: '+18.3%', trend: 'up', icon: Eye, color: 'purple' },
-    { label: 'Dönüşüm Oranı', value: '3.4%', change: '-0.5%', trend: 'down', icon: Activity, color: 'orange' }
+    { label: 'Aktif Kullanıcı', value: '6,234', change: '+15.8%', trend: 'up', icon: Users, color: 'blue' },
+    { label: 'Günlük Ziyaretçi', value: '18,542', change: '+22.3%', trend: 'up', icon: Eye, color: 'purple' },
+    { label: 'Dönüşüm Oranı', value: '4.8%', change: '+1.4%', trend: 'up', icon: Activity, color: 'orange' }
   ]
 
   const weeklyData = [
