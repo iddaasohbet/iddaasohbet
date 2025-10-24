@@ -30,17 +30,20 @@ export default function FooterStats() {
     return () => clearInterval(id)
   }, [])
 
+  const fmt = (n: number | null) =>
+    n == null ? '—' : n.toLocaleString('tr-TR')
+
   return (
-    <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-white/10">
+    <div className="mt-6 flex items-center justify-between w-full text-sm">
+      <div className="inline-flex items-center gap-2 text-foreground/70">
         <Users className="h-4 w-4 text-green-400" />
-        <span className="text-sm text-foreground/60">Şu an çevrimiçi</span>
-        <span className="ml-auto text-sm font-semibold">{online ?? '—'}</span>
+        <span>Şu an çevrimiçi:</span>
+        <span className="font-semibold text-foreground">{fmt(online)}</span>
       </div>
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-white/10">
+      <div className="inline-flex items-center gap-2 text-foreground/70">
         <Radio className="h-4 w-4 text-yellow-400" />
-        <span className="text-sm text-foreground/60">Toplam ziyaret</span>
-        <span className="ml-auto text-sm font-semibold">{total ?? '—'}</span>
+        <span>Toplam ziyaret:</span>
+        <span className="font-semibold text-foreground">{fmt(total)}</span>
       </div>
     </div>
   )
