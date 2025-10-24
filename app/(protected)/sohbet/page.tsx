@@ -347,30 +347,7 @@ export default function LiveChatPage() {
                   <button onClick={() => setValue('/yardim')} className="text-xs px-2 py-1 rounded border border-white/10 hover:border-green-500/40 hover:text-green-400 transition">/yardim</button>
                 </div>
               </CardTitle>
-              {/* Bot üst bandı */}
-              <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="relative mt-0.5">
-                  <Radio className="h-4 w-4 text-purple-400" />
-                  <div className="absolute inset-0 bg-purple-500 blur-sm opacity-30" />
-                </div>
-                <div className="text-xs text-foreground/70 leading-relaxed flex-1">
-                  <div className="font-semibold text-foreground">Sohbet Botu</div>
-                  Hoş geldiniz! Kuralları görmek için <span className="text-green-400">/kurallar</span> yazın. Yardım için <span className="text-green-400">/yardim</span>.
-                </div>
-                <Button 
-                  size="sm" 
-                  onClick={async () => {
-                    const res = await fetch('/api/kuponlar?userId=' + (session?.user as any)?.id)
-                    const data = await res.json()
-                    setUserCoupons(data.coupons || [])
-                    setShowShareCoupon(true)
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-semibold hover:from-green-600 hover:to-yellow-500 text-xs py-1 px-3 h-auto"
-                >
-                  <Share2 className="h-3 w-3 mr-1" />
-                  Kupon Paylaş
-                </Button>
-              </div>
+              {/* Bot üst bandı gizlendi */}
             </CardHeader>
             <CardContent className="p-0">
               <div ref={listRef} className="h-[60vh] overflow-y-auto p-4 space-y-3 scroll-smooth"

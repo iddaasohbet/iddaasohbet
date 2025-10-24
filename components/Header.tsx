@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X, Home, BarChart3, Users, Radio } from 'lucide-react'
+import { Trophy, User, Search, Menu, Flame, LogOut, Settings, LayoutDashboard, X, Home, BarChart3, Users, Radio, MessageCircle } from 'lucide-react'
 import DmUnreadBell from './DmUnreadBell'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -266,6 +266,17 @@ export default function Header() {
 
             {/* Ultra Premium Navigation with Cascade & Active States */}
             <nav className="flex-1 overflow-y-auto p-8 space-y-4 relative">
+              {/* Canlı Sohbet - First */}
+              <Link href="/sohbet" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '150ms'}}>
+                  <div className={`absolute inset-0 bg-gradient-to-r from-green-500/25 to-green-600/10 transition-opacity duration-300 ${pathname === '/sohbet' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 transition-all duration-300 ${pathname === '/sohbet' ? 'opacity-100' : 'opacity-0'}`}></div>
+                  <Button variant="ghost" className={`w-full justify-start h-16 text-lg font-bold backdrop-blur-xl border transition-all duration-300 ${pathname === '/sohbet' ? 'border-green-500/50 text-green-400 bg-green-500/10' : 'border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400'}`}>
+                    <MessageCircle className={`h-6 w-6 mr-4 transition-transform duration-300 ${pathname === '/sohbet' ? 'scale-110' : 'group-hover:scale-110'}`} />
+                    Canlı Sohbet
+                  </Button>
+                </div>
+              </Link>
               {/* Ana Sayfa */}
               <Link href="/" onClick={() => setShowMobileMenu(false)}>
                 <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '200ms'}}>
@@ -329,6 +340,28 @@ export default function Header() {
                     <BarChart3 className={`h-6 w-6 mr-4 transition-transform duration-300 ${pathname === '/istatistikler' ? 'scale-110' : 'group-hover:scale-110'}`} />
                     İstatistikler
                   </Button>
+                </div>
+              </Link>
+
+              {/* Bilgi Sayfaları */}
+              <Link href="/hakkimizda" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '650ms'}}>
+                  <Button variant="ghost" className="w-full justify-start h-14 text-base font-semibold border border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400">Hakkımızda</Button>
+                </div>
+              </Link>
+              <Link href="/iletisim" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '700ms'}}>
+                  <Button variant="ghost" className="w-full justify-start h-14 text-base font-semibold border border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400">İletişim</Button>
+                </div>
+              </Link>
+              <Link href="/sss" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '750ms'}}>
+                  <Button variant="ghost" className="w-full justify-start h-14 text-base font-semibold border border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400">SSS</Button>
+                </div>
+              </Link>
+              <Link href="/blog" onClick={() => setShowMobileMenu(false)}>
+                <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '800ms'}}>
+                  <Button variant="ghost" className="w-full justify-start h-14 text-base font-semibold border border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400">Blog</Button>
                 </div>
               </Link>
 
