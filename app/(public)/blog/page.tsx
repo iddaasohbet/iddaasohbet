@@ -1,3 +1,18 @@
+'use client'
+
+import { Card } from '@/components/ui/card'
+
+export default function BlogPage() {
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-6">Blog</h1>
+      <Card className="glass-dark border-white/10 p-6">
+        <p className="text-foreground/70">Yakında burada iddaa analizi, ipuçları ve duyurular paylaşılacak.</p>
+      </Card>
+    </div>
+  )
+}
+
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

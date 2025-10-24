@@ -1,5 +1,27 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
+
+export default function SSSPage() {
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-6">Sıkça Sorulan Sorular</h1>
+      <div className="grid grid-cols-1 gap-4">
+        <Card className="glass-dark border-white/10 p-6">
+          <h2 className="text-lg font-semibold mb-2">Canlı Sohbeti nasıl kullanırım?</h2>
+          <p className="text-foreground/70">Üye girişi yaptıktan sonra sohbet alanına mesaj yazabilirsiniz. Misafirler sohbeti görüntüleyebilir.</p>
+        </Card>
+        <Card className="glass-dark border-white/10 p-6">
+          <h2 className="text-lg font-semibold mb-2">Kuponları herkes görebilir mi?</h2>
+          <p className="text-foreground/70">Evet, kupon listesi ve detayları herkese açıktır.</p>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+'use client'
+
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

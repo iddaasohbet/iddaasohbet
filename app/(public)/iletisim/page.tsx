@@ -1,5 +1,24 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+export default function IletisimPage() {
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-6">İletişim</h1>
+      <Card className="glass-dark border-white/10 p-6">
+        <p className="text-foreground/70 mb-4">İş birlikleri ve destek için bizimle iletişime geçin.</p>
+        <a href="mailto:info@iddaasohbet.com">
+          <Button className="bg-gradient-to-r from-green-500 to-yellow-400 text-black font-semibold">E-posta Gönder</Button>
+        </a>
+      </Card>
+    </div>
+  )
+}
+
+'use client'
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
