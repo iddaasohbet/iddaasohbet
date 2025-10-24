@@ -101,8 +101,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           {/* Bottom Section */}
           <div className="pt-8 border-t border-white/5">
             <FooterStats />
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-              <p className="text-sm text-foreground/60 text-center md:text-left">
+            <div className="flex justify-center items-center">
+              <p className="text-sm text-foreground/60 text-center">
                 © 2025 İddaaSohbet. Tüm hakları saklıdır.
               </p>
             </div>
