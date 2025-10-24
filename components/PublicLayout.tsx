@@ -6,6 +6,8 @@ import Header from '@/components/Header'
 import CookieConsent from '@/components/CookieConsent'
 import { Trophy, Mail, Twitter, Instagram, MessageCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+const FooterStats = dynamic(() => import('./FooterStats'), { ssr: false })
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -98,6 +100,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
           {/* Bottom Section */}
           <div className="pt-8 border-t border-white/5">
+            <FooterStats />
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <p className="text-sm text-foreground/60 text-center md:text-left">
                 © 2025 İddaaSohbet. Tüm hakları saklıdır.
