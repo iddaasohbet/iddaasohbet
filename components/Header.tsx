@@ -283,19 +283,6 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Primary Links */}
-              <div className="space-y-4">
-                {/* Canlı Sohbet - First */}
-                <Link href="/sohbet" onClick={() => setShowMobileMenu(false)}>
-                  <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '200ms'}}>
-                    <div className={`absolute inset-0 bg-gradient-to-r from-green-500/25 to-green-600/10 transition-opacity duration-300 ${pathname === '/sohbet' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 transition-all duration-300 ${pathname === '/sohbet' ? 'opacity-100' : 'opacity-0'}`}></div>
-                    <Button variant="ghost" className={`w-full justify-start h-16 text-lg font-bold backdrop-blur-xl border transition-all duration-300 ${pathname === '/sohbet' ? 'border-green-500/50 text-green-400 bg-green-500/10' : 'border-white/10 text-white/90 hover:border-green-500/30 hover:text-green-400'}`}>
-                      <MessageCircle className={`h-6 w-6 mr-4 transition-transform duration-300 ${pathname === '/sohbet' ? 'scale-110' : 'group-hover:scale-110'}`} />
-                      Canlı Sohbet
-                    </Button>
-                  </div>
-                </Link>
               {/* Canlı Sohbet - First */}
               <Link href="/sohbet" onClick={() => setShowMobileMenu(false)}>
                 <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '150ms'}}>
@@ -307,6 +294,7 @@ export default function Header() {
                   </Button>
                 </div>
               </Link>
+              
               {/* Ana Sayfa */}
               <Link href="/" onClick={() => setShowMobileMenu(false)}>
                 <div className={`group relative overflow-hidden rounded-2xl transition-all duration-700 ${showMobileMenu ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`} style={{transitionDelay: '200ms'}}>
